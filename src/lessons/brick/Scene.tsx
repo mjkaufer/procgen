@@ -53,7 +53,7 @@ function Box(props: Partial<MeshProps>) {
 
 export function Scene() {
   return (
-    <Canvas style={{width: '100%', height: '100%'}}>
+    <Canvas style={{width: '100%', height: '100%', background: '#000'}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
       <Box position={[0, 0, 0]} />

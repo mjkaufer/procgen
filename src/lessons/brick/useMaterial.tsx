@@ -22,17 +22,26 @@ const fragmentShader = glsl`
   varying vec3 pos;
   varying vec2 aUV;
 
-  float BRICK_W = 0.2;
-  float BRICK_H = 0.075;
-  float BRICK_BUFF = 0.05;
+  float BRICK_BUFF = 0.025;
+
+  float BRICK_W = 0.225;
+  
+  float BRICK_H = 0.1;
   
   void main() {
+    float BRICK_W_FULL = BRICK_W + BRICK_BUFF;
+    float BRICK_H_FULL = BRICK_H + BRICK_BUFF;
 
+    float brickHAbs = aUV.y - BRICK_BUFF / 2.;
+    float brickHRel = mod(brickHAbs, BRICK_H + BRICK_BUFF);
+    float brickRow = floor(brickHAbs / BRICK_H_FULL);
+    float brickWAbs = aUV.x + (mod(brickRow, 2.) * BRICK_W_FULL / 2.) - BRICK_BUFF / 2.;
+    float brickWRel = mod(brickWAbs, BRICK_W + BRICK_BUFF);
 
-    // vec4 stripes = vec4(sin(pos.x) + 1.0, 0.0, 0.0, 1.0);
-    // gl_FragColor = mix(stripes, vec4(0., 0.5, 0., 1.0), hovered ? 0. : 0.);
-    bool isBrick = mod(aUV.x - BRICK_BUFF / 2.0, BRICK_W + BRICK_BUFF) <= BRICK_W && mod(aUV.y - BRICK_BUFF / 2.0, BRICK_H + BRICK_BUFF) <= BRICK_H;
-    gl_FragColor = isBrick ? vec4(1., 0., 0., 1.0) : vec4(1., 1., 0.6, 1.);
+    bool isBrick = brickWRel <= BRICK_W && brickHRel <= BRICK_H;
+    bool isBorder = aUV.x < BRICK_BUFF || (1. - aUV.x) < BRICK_BUFF || aUV.y < BRICK_BUFF || (1. - aUV.y) < BRICK_BUFF;
+
+    gl_FragColor = isBrick && !isBorder ? vec4(1., 0., 0., 1.) : vec4(1., 1., 0.6, 1.);
   }
 `;
 
