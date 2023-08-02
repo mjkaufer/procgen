@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 import React, { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three';
 import { Canvas, MeshProps, ThreeElements, useFrame } from '@react-three/fiber'
-import { Material } from './Material';
+import { useMaterial } from './useMaterial';
 
 const black = new THREE.Color(0, 0, 0);
 const red = new THREE.Color(0.5, 0, 0);
@@ -23,6 +23,13 @@ function Box(props: Partial<MeshProps>) {
       }
     });
 
+  const {
+    material,
+  } = useMaterial({
+    color: hovered ? black : red,
+    hovered,
+  })
+
 
   return (
     <mesh
@@ -32,9 +39,9 @@ function Box(props: Partial<MeshProps>) {
       onClick={(event) => click(!clicked)}
       onPointerOver={(event) => hover(true)}
       onPointerOut={(event) => hover(false)}
+      material={material}
       >
       <boxGeometry args={[1, 1, 1]} />
-      <Material color={hovered ? black : red}/>
       
     </mesh>
   )
