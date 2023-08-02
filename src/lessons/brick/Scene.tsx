@@ -6,7 +6,7 @@ import { useMaterial } from './useMaterial';
 
 const black = new THREE.Color(0, 0, 0);
 const red = new THREE.Color(0.5, 0, 0);
-const CUBE_RES = 32;
+const CUBE_RES = 64;
 function Box(props: Partial<MeshProps>) {
   console.log("RERENDERING??")
   // This reference gives us direct access to the THREE.Mesh object

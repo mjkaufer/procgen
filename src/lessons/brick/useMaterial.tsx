@@ -22,26 +22,26 @@ const fragmentShader = glsl`
   varying vec3 pos;
   varying vec2 aUV;
 
-  float BRICK_BUFF = 0.025;
-
+  float BRICK_PAD = 0.0125;
   float BRICK_W = 0.225;
-  
   float BRICK_H = 0.1;
   
   void main() {
-    float BRICK_W_FULL = BRICK_W + BRICK_BUFF;
-    float BRICK_H_FULL = BRICK_H + BRICK_BUFF;
+    float BRICK_PAD_BORDER = BRICK_PAD * 2.;
+    float BRICK_W_FULL = BRICK_W + BRICK_PAD;
+    float BRICK_H_FULL = BRICK_H + BRICK_PAD;
 
-    float brickHAbs = aUV.y - BRICK_BUFF / 2.;
-    float brickHRel = mod(brickHAbs, BRICK_H + BRICK_BUFF);
-    float brickRow = floor(brickHAbs / BRICK_H_FULL);
-    float brickWAbs = aUV.x + (mod(brickRow, 2.) * BRICK_W_FULL / 2.) - BRICK_BUFF / 2.;
-    float brickWRel = mod(brickWAbs, BRICK_W + BRICK_BUFF);
+    float brickAbsX = aUV.x - BRICK_PAD * 2.0;
 
-    bool isBrick = brickWRel <= BRICK_W && brickHRel <= BRICK_H;
-    bool isBorder = aUV.x < BRICK_BUFF || (1. - aUV.x) < BRICK_BUFF || aUV.y < BRICK_BUFF || (1. - aUV.y) < BRICK_BUFF;
+    bool isOuterBorder = aUV.x < BRICK_PAD_BORDER || (1. - aUV.x) < BRICK_PAD_BORDER || aUV.y < BRICK_PAD_BORDER || (1. - aUV.y) < BRICK_PAD_BORDER;
 
-    gl_FragColor = isBrick && !isBorder ? vec4(1., 0., 0., 1.) : vec4(1., 1., 0.6, 1.);
+    float brickHRel = mod(aUV.y, BRICK_H_FULL);
+    float brickRow = floor(aUV.y / BRICK_H_FULL) + 1.0;
+    float brickWRel = mod(brickAbsX + (mod(brickRow, 2.) * BRICK_W_FULL / 2.), BRICK_W_FULL);
+
+    bool isBorder = isOuterBorder || brickWRel < BRICK_PAD || (BRICK_W_FULL - brickWRel) < BRICK_PAD || brickHRel < BRICK_PAD || (BRICK_H_FULL - brickHRel) < BRICK_PAD;
+
+    gl_FragColor = !isBorder ? vec4(1., 0., 0., 1.) : vec4(1., 1., 0.6, 1.);
   }
 `;
 
@@ -67,10 +67,8 @@ const vertexShader = glsl`
   varying vec3 pos;
   varying vec2 aUV;
 
-  float BRICK_BUFF = 0.025;
-
+  float BRICK_PAD = 0.0125;
   float BRICK_W = 0.225;
-  
   float BRICK_H = 0.1;
 
   void main() {
@@ -79,19 +77,21 @@ const vertexShader = glsl`
     N = normal;
     pos = position;
 
-    float BRICK_W_FULL = BRICK_W + BRICK_BUFF;
-    float BRICK_H_FULL = BRICK_H + BRICK_BUFF;
+    float BRICK_PAD_BORDER = BRICK_PAD * 2.;
+    float BRICK_W_FULL = BRICK_W + BRICK_PAD;
+    float BRICK_H_FULL = BRICK_H + BRICK_PAD;
 
-    float brickHAbs = aUV.y - BRICK_BUFF / 2.;
-    float brickHRel = mod(brickHAbs, BRICK_H + BRICK_BUFF);
-    float brickRow = floor(brickHAbs / BRICK_H_FULL);
-    float brickWAbs = aUV.x + (mod(brickRow, 2.) * BRICK_W_FULL / 2.) - BRICK_BUFF / 2.;
-    float brickWRel = mod(brickWAbs, BRICK_W + BRICK_BUFF);
+    float brickAbsX = aUV.x - BRICK_PAD * 2.0;
 
-    bool isBrick = brickWRel <= BRICK_W && brickHRel <= BRICK_H;
-    bool isBorder = aUV.x < BRICK_BUFF || (1. - aUV.x) < BRICK_BUFF || aUV.y < BRICK_BUFF || (1. - aUV.y) < BRICK_BUFF;
+    bool isOuterBorder = aUV.x < BRICK_PAD_BORDER || (1. - aUV.x) < BRICK_PAD_BORDER || aUV.y < BRICK_PAD_BORDER || (1. - aUV.y) < BRICK_PAD_BORDER;
 
-    vec3 pos = isBorder ? position : isBrick ? (position + normal * 0.03) : (position - normal * 0.03);
+    float brickHRel = mod(aUV.y, BRICK_H_FULL);
+    float brickRow = floor(aUV.y / BRICK_H_FULL) + 1.0;
+    float brickWRel = mod(brickAbsX + (mod(brickRow, 2.) * BRICK_W_FULL / 2.), BRICK_W_FULL);
+
+    bool isBorder = isOuterBorder || brickWRel < BRICK_PAD || (BRICK_W_FULL - brickWRel) < BRICK_PAD || brickHRel < BRICK_PAD || (BRICK_H_FULL - brickHRel) < BRICK_PAD;
+
+    vec3 pos = isOuterBorder ? position : isBorder ? (position - normal * 0.03) : (position + normal * 0.03);
     vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition; // like 2D arrangement?
     vec4 projectedPosition = projectionMatrix * viewPosition;
