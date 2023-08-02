@@ -13,39 +13,26 @@ const fragmentShader = glsl`
   uniform mat4 viewMatrix;
   uniform vec3 cameraPosition;
 
-  // CUSTOM DEPS
-
-  // varying vec4 gl_Position;
+  // CUSTOM UNIFORM ARGS
   uniform vec3 color;
   uniform bool hovered;
 
-  vec2 uv_out;
+  // CUSTOM ATTRIBUTES PASSED
   varying vec3 N;
-  varying vec4 vPos;
+  varying vec3 pos;
+  varying vec2 aUV;
+
+  float BRICK_W = 0.2;
+  float BRICK_H = 0.075;
+  float BRICK_BUFF = 0.05;
   
   void main() {
-    // gl_FragColor = vec4(color, 1.0);
-    // gl_FragColor = vec4(mod(cameraPosition.x, 2.0) > 1.0 ? 1.0 : 0.0, 0.0, 0.0, 1.0);
-    gl_FragColor = vec4(sin(gl_FragCoord.x * 10.0) + 1.0, 0.0, 0.0, 1.0);
-    // gl_FragColor = vec4(sin(gl_PointCoord.x * 10.0) + 1.0, 1.0, 0.0, 1.0);
-    // gl_FragColor = vec4(sin(gl_SamplePosition.x * 10.0) + 1.0, 0.0, 0.0, 1.0);
-    
 
-    // // vec3 pos = cameraPosition * vec3(gl_FragCoord.x, gl_FragCoord.y, gl_FragCoord.z);
-    // // vec4 pos = modelMatrix * viewMatrix * gl_FragCoord;
-    // vec4 pos = viewMatrix * vec4(cameraPosition, 1.0) * gl_FragCoord;
 
-    // // gl_FragColor = vec4((sin(gl_FragCoord.x) + 1.0) / 2.0, (cos(gl_FragCoord.y) + 1.0) / 2.0, 0.0, 1.0);
-    // // gl_FragColor = vec4((sin(pos.x * 10.0) + 1.0) / 2.0, (cos(pos.y * 10.0) + 1.0) / 2.0, 0.0, 1.0);
-    // // gl_FragColor = vec4(mod(pos.w, 1.0), 1.0, 1.0, 1.0);
-    // gl_FragColor = vec4(abs(N.x), abs(N.y), abs(N.z), 1.0);
-
-    // vec2 vCoords = vPos.xy;
-		// vCoords /= vPos.w;
-		// vCoords = vCoords * 0.5 + 0.5;
-  
-  	// vec2 uv = fract( vCoords * 10.0 );
-    // gl_FragColor = vec4( uv, 0.0, 1.0 );
+    // vec4 stripes = vec4(sin(pos.x) + 1.0, 0.0, 0.0, 1.0);
+    // gl_FragColor = mix(stripes, vec4(0., 0.5, 0., 1.0), hovered ? 0. : 0.);
+    bool isBrick = mod(aUV.x - BRICK_BUFF / 2.0, BRICK_W + BRICK_BUFF) <= BRICK_W && mod(aUV.y - BRICK_BUFF / 2.0, BRICK_H + BRICK_BUFF) <= BRICK_H;
+    gl_FragColor = isBrick ? vec4(1., 0., 0., 1.0) : vec4(1., 1., 0.6, 1.);
   }
 `;
 
@@ -63,35 +50,27 @@ const vertexShader = glsl`
   attribute vec3 normal;
   attribute vec2 uv;
 
-  // CUSTOM DEPS
+  // CUSTOM UNIFORM ARGS
   uniform vec3 color;
 
+  // CUSTOM ATTRIBUTES PASSED
   varying vec3 N;
-  varying vec4 vPos;
-  varying vec3 posClone;
+  varying vec3 pos;
+  varying vec2 aUV;
 
   void main() {
-    // vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-    // vec4 viewPosition = viewMatrix * modelPosition;
-    // vec4 projectedPosition = projectionMatrix * viewPosition;
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
-    // gl_Position = projectedPosition;
-    // projPos = vec3(projectedPosition.x, projectedPosition.y, projectedPosition.z);
-    // N = normal;
+    // like 2D arrangement?
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
 
     N = normal;
-    // N = normalMatrix * normalize(normal);
+    pos = position;
+    aUV = uv;
+    // pos = vec3(projectedPosition);
 
-    posClone = position;    
-    // if (mod(floor(posClone.x), 2.0) < 0.01) {
-    //   posClone.x += 100.0;
-    //   posClone.y += 100.0;
-    //   posClone.z += 100.0;
-    // }
-
-    vPos = projectionMatrix * modelViewMatrix * vec4( posClone, 1.0 );
-
-    gl_Position = vPos;
+    gl_Position = projectedPosition;
   }
 `;
 

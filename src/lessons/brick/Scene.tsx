@@ -15,12 +15,16 @@ function Box(props: Partial<MeshProps>) {
   const [hovered, hover] = useState(false);
   const [clicked, click] = useState(false);
 
+
+
   useFrame(
     (state, delta) => {
       if (ref.current && hovered) {
         ref.current.rotation.y += delta;
         ref.current.rotation.z += delta;
       }
+      // state.camera.position.z += (Math.sin(+new Date() / 1000) / 30);
+      // state.camera.position.x += (Math.cos(+new Date() / 1000) / 30);
     });
 
   const {
