@@ -8,11 +8,13 @@ import fragmentShader from './fragmentShader.glsl';
 interface IMaterialProps {
   lightingAtCamera: boolean;
   moveLight: boolean;
+  clampLighting: boolean;
 }
 
 export function useMaterial({
   lightingAtCamera,
   moveLight,
+  clampLighting,
 }: IMaterialProps) {
 
   const initTime = 0;
@@ -22,8 +24,9 @@ export function useMaterial({
       time: initTime,
       lightingAtCamera,
       moveLight,
+      clampLighting,
     }
-  }, [lightingAtCamera, moveLight]);
+  }, [lightingAtCamera, moveLight, clampLighting]);
 
   const uniforms = useMemo(() => {
     return _.mapValues(uniformsRaw, v => new THREE.Uniform(v));

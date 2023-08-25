@@ -13,6 +13,7 @@ export default glsl`
   uniform float time;
   uniform bool lightingAtCamera;
   uniform bool moveLight;
+  uniform bool clampLighting;
 
   // CUSTOM ATTRIBUTES PASSED
   varying vec3 N;
@@ -36,6 +37,8 @@ export default glsl`
 
     return vec3(1.0);
   }
+
+  const float BORDERLANDS_LIMIT = 0.45;
 
   void main() {
 
@@ -78,7 +81,13 @@ export default glsl`
     float exp = (sin(time * 3.) + 1.) / 2. * 0.5 + 0.5;
 
     // baseVal = pow(max(baseVal, 0.), exp);
-    baseVal = pow(max(baseVal, 0.), 1.);
+    if (clampLighting) {
+
+      baseVal = pow(max(baseVal, 0.), 0.8);
+      baseVal = baseVal > BORDERLANDS_LIMIT ? baseVal : 0.;
+    } else {
+      baseVal = pow(max(baseVal, 0.), 1.);
+    }
 
       
     gl_FragColor = vec4(vec3(baseVal), 1.0);

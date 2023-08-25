@@ -13,6 +13,7 @@ interface IMainMeshProps {
   controlRotation: [number, number];
   lightingAtCamera: boolean;
   moveLight: boolean;
+  clampLighting: boolean;
 }
 function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
   // This reference gives us direct access to the THREE.Mesh object
@@ -37,15 +38,15 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
       if (ref.current) {
         const offset = (+new Date() / 1000) - startTime;
         ref.current.rotation.y = props.controlRotation[0]
-          // + Math.sin(offset / 4.0) * 0.75;
+        // + Math.sin(offset / 4.0) * 0.75;
         ref.current.rotation.x = props.controlRotation[1]
-          // + Math.sin(offset / 4.0) * 0.5;
+        // + Math.sin(offset / 4.0) * 0.5;
       }
     });
 
   const {
     material,
-  } = useMaterial({ lightingAtCamera: props.lightingAtCamera, moveLight: props.moveLight })
+  } = useMaterial({ lightingAtCamera: props.lightingAtCamera, moveLight: props.moveLight, clampLighting: props.clampLighting })
 
 
   return (
@@ -77,11 +78,13 @@ const MOUSE_SCALING = 100;
 
 export function Scene() {
   const {
-    "Ambient Light": lightingAtCamera,
+    "Light @ Cam": lightingAtCamera,
+    "Borderlands Mode": clampLighting,
     "Move Light": moveLight,
   } = useControls({
-    "Ambient Light": false,
+    "Light @ Cam": false,
     "Move Light": true,
+    "Borderlands Mode": true,
   });
 
   const { mouseState } = useMouseDrag({});
@@ -102,7 +105,7 @@ export function Scene() {
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation} lightingAtCamera={lightingAtCamera} moveLight={moveLight} />
+      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation} lightingAtCamera={lightingAtCamera} moveLight={moveLight} clampLighting={clampLighting} />
     </Canvas>
   )
 
