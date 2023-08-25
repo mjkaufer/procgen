@@ -9,12 +9,14 @@ interface IMaterialProps {
   color: THREE.Color;
   hovered: boolean; // todo use for something
   temporalPan: boolean;
+  brickScale: number;
 }
 
 export function useMaterial({
   color,
   hovered,
   temporalPan,
+  brickScale,
 }: IMaterialProps) {
 
   const initTime = 0;
@@ -25,6 +27,7 @@ export function useMaterial({
       hovered,
       temporalPan,
       time: initTime,
+      brickScale,
     }
   }, [color, hovered, temporalPan]);
 
@@ -55,17 +58,22 @@ export function useMaterial({
 
   useEffect(() => {
     const initialDate = +Date.now();
-    // let shouldUpdate = false;
-    // todo: maybe migrate to animation frame?
-    const interval = setInterval(() => {
+    let shouldUpdate = true;
+    if (!temporalPan) {
+      return;
+    }
+    const update = () => {
       material.uniforms.time.value = (+Date.now() - initialDate) / 1000;
       material.uniformsNeedUpdate = true;
-    }, 5)
-
-    return () => {
-      clearInterval(interval)
+      console.log("Triggered!")
+      shouldUpdate && window.requestAnimationFrame(update);
     };
-  }, [uniforms, material]);
+    update();
+    
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [uniforms, material, temporalPan]);
 
   (window as any).material = material;
   return {

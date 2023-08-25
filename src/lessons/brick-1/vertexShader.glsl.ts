@@ -22,14 +22,19 @@ export default glsl`
   varying vec2 aUV;
   varying vec2 oUV;
 
-  float BRICK_PAD = 0.0125;
-  float BRICK_W = 0.225;
-  float BRICK_H = 0.1;
+  float BRICK_PAD_BASE = 0.0125;
+  float BRICK_W_BASE = 0.225;
+  float BRICK_H_BASE = 0.1;
 
   uniform bool temporalPan;
   uniform float time;
+  uniform float brickScale;
 
   void main() {
+
+    float BRICK_PAD = BRICK_PAD_BASE * brickScale;
+    float BRICK_W = BRICK_W_BASE * brickScale;
+    float BRICK_H = BRICK_H_BASE * brickScale;
 
     aUV = uv;
     oUV = uv;

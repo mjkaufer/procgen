@@ -14,6 +14,7 @@ export default glsl`
   uniform bool hovered;
   uniform bool temporalPan;
   uniform float time;
+  uniform float brickScale;
 
   // CUSTOM ATTRIBUTES PASSED
   varying vec3 N;
@@ -21,11 +22,17 @@ export default glsl`
   varying vec2 aUV;
   varying vec2 oUV;
 
-  float BRICK_PAD = 0.0125;
-  float BRICK_W = 0.225;
-  float BRICK_H = 0.1;
+
+  float BRICK_PAD_BASE = 0.0125;
+  float BRICK_W_BASE = 0.225;
+  float BRICK_H_BASE = 0.1;
   
   void main() {
+
+    float BRICK_PAD = BRICK_PAD_BASE * brickScale;
+    float BRICK_W = BRICK_W_BASE * brickScale;
+    float BRICK_H = BRICK_H_BASE * brickScale;
+
     float BRICK_PAD_BORDER = BRICK_PAD * 2.;
     float BRICK_W_FULL = BRICK_W + BRICK_PAD;
     float BRICK_H_FULL = BRICK_H + BRICK_PAD;

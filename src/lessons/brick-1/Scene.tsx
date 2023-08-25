@@ -22,6 +22,14 @@ enum BrickShape {
   Wall = 'Wall',
   Cube = 'Cube',
   Sphere = 'Sphere',
+  Torus = 'Torus',
+}
+
+const BRICK_SCALE_BY_SHAPE: Readonly<Record<BrickShape, number>> = {
+  [BrickShape.Wall]: 1,
+  [BrickShape.Cube]: 1,
+  [BrickShape.Sphere]: 0.5,
+  [BrickShape.Torus]: 0.5,
 }
 
 interface IBrickProps {
@@ -58,6 +66,7 @@ function Brick(props: Partial<MeshProps> & IBrickProps) {
     color: hovered ? black : red,
     hovered,
     temporalPan: props.temporalPan,
+    brickScale: BRICK_SCALE_BY_SHAPE[props.shape],
   })
 
 
@@ -82,6 +91,18 @@ function Brick(props: Partial<MeshProps> & IBrickProps) {
         // <planeGeometry args={[PLANE_SIZE, PLANE_SIZE, PLANE_RES, PLANE_RES]} />
         <sphereGeometry args={[SPHERE_SIZE, SPHERE_RES]} />
       )}
+
+{props.shape === BrickShape.Torus && (
+        // <planeGeometry args={[PLANE_SIZE, PLANE_SIZE, PLANE_RES, PLANE_RES]} />
+        <torusKnotGeometry args={[
+          1, // radius
+          0.25, // tube thickness
+          50, // tube segments
+          20, // rad segments
+          1,
+          3,
+        ]} />
+      )}
       
 
     </mesh>
@@ -91,15 +112,21 @@ function Brick(props: Partial<MeshProps> & IBrickProps) {
 const MOUSE_SCALING = 100;
 
 export function Scene() {
-  const { "Animate Bricks": temporalPan, Shape } = useControls({
-    "Animate Bricks": {
-      value: false,
-    },
+  const {
+    // "Animate Bricks": temporalPan,
+    Shape
+  } = useControls({
+      // too choppy :(
+    // "Animate Bricks": {
+    //   value: false,
+    // },
     Shape: {
       value: BrickShape.Cube,
       options: Object.values(BrickShape),
     }
-  })
+  });
+
+  const temporalPan = false;
 
   const { mouseState } = useMouseDrag({});
 
