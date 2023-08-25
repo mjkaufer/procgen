@@ -1,7 +1,6 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import { View as BrickView } from './lessons/brick/View';
+import { View as BrickView } from './lessons/brick-1/View';
 
 function App() {
   return (
