@@ -1,12 +1,17 @@
+import { IView } from "../../common";
 import { Scene } from "./Scene";
 
 export function View() {
   return (
-    <div style={{position: 'relative', height: '100%', width: '100%'}}>
-      TODO: Brick contorls?
-      <div style={{position: 'absolute', left: 0, top: 0, width: '100%', height: '100%'}}>
       <Scene/>
-      </div>
-    </div>
   )
 }
+
+const viewInfo: IView = {
+  component: View,
+  title: 'Brick #1',
+  description: 'Simple brick texture, applicable to different shapes. Drag around!',
+  createdAt: new Date('Aug 1 2023'),
+};
+
+export default viewInfo;

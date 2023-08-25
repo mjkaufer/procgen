@@ -1,14 +1,13 @@
 import React from 'react';
 import './App.css';
-import { View as BrickView } from './lessons/brick-1/View';
-import { View as TemplateView } from './lessons/template/View';
-import { View as SpookyTorusView } from './lessons/spooky-torus/View';
+
+import LessonSelector from './lessons';
 
 function App() {
   return (
-    // <BrickView/>
-    // <TemplateView/>
-    <SpookyTorusView/>
+  <div style={{position: 'relative', height: '100%', width: '100%'}}>
+    <LessonSelector/>
+  </div>
   );
 }
 
