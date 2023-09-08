@@ -7,19 +7,25 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { FastCatmullRomCurve3 } from '../../utils/FastCatmullRomCurve3';
 
 const _centerVec = new THREE.Vector3();
 const _normalVec = new THREE.Vector3();
 const _vertexIndexVec = new THREE.Vector3();
 
-const lineMat = new THREE.LineBasicMaterial({
-// const lineMat = new LineMaterial({
-  color: 0xffff00,
-  linewidth: 0.1,
-  // vertexColors: true,
-  // alphaToCoverage: true,
-  // worldUnits: true,
-})
+// const lineMat = new THREE.LineBasicMaterial({
+// // const lineMat = new LineMaterial({
+//   color: 0xffff00,
+//   linewidth: 0.1,
+//   // vertexColors: true,
+//   // alphaToCoverage: true,
+//   // worldUnits: true,
+// })
+
+// TODO: Texture this
+const tubeMat = new THREE.MeshBasicMaterial({
+    color: 0x2D5A27,
+  })
 
 export class VineCrawler {
   // This is the strict point geometry
@@ -36,7 +42,7 @@ export class VineCrawler {
   private nextFaceIndex: number;
 
   // private line: Line2;
-  private line: THREE.Line;
+  private line: THREE.Mesh;
   private doneCrawling: boolean;
 
   constructor(geometry: THREE.BufferGeometry, opts?: {
@@ -59,7 +65,7 @@ export class VineCrawler {
       this.visitedFaceIndices = opts.visitedFaceIndices;
       this.nextFaceIndex = opts.nextFaceIndex;
       this.doneCrawling = opts.doneCrawling;
-      this.rawLineGeometry = new THREE.BufferGeometry();
+      this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
       this.line = this.createLineStub();
       // this.rawLineGeometry = opts.rawLineGeometry;
       return;
@@ -95,20 +101,15 @@ export class VineCrawler {
     this.visitedFaceIndices = new Set();
     this.nextFaceIndex = this.lowestFaceIndex;
     this.doneCrawling = false;
-    this.rawLineGeometry = new THREE.BufferGeometry();
+    this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
     this.line = this.createLineStub();
   }
 
   createLineStub = () => {
-    this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
-      [
-        
-      ]
-    )
-    return new THREE.Line(
-      this.rawLineGeometry,
-      lineMat,
-    )
+    return new THREE.Mesh(
+      this.createTubeGeometry(undefined, 1),
+      tubeMat,
+    );
     // this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
     //   [
     //     new THREE.Vector3(0, 0, 0),
@@ -189,6 +190,14 @@ export class VineCrawler {
     }
   }
 
+  createTubeGeometry = (curve: THREE.Curve<THREE.Vector3> | undefined, numPoints: number) => {
+    return new THREE.TubeGeometry(
+      curve,
+      numPoints * 4,
+      0.05,
+    );
+  }
+
   crawl = () => {
     if (this.doneCrawling) {
       return false;
@@ -206,17 +215,35 @@ export class VineCrawler {
       return false;
     }
 
-    console.log("INPUT IS", this.geometry, crawlRes.geometryJump,)
+    console.log("INPUT IS", this.rawLineGeometry, crawlRes.geometryJump,)
+    console.log("INPUT PT2", Object.keys(this.rawLineGeometry.attributes), Object.keys(crawlRes.geometryJump.attributes))
     const newGeo = BufferGeometryUtils.mergeGeometries([
       this.rawLineGeometry, crawlRes.geometryJump,
     ].filter((v): v is THREE.BufferGeometry => !!v));
     this.rawLineGeometry = newGeo;
 
-    // console.log("GEO IS", newGeo)
+    console.log("GEO IS", newGeo);
 
     // (this.line.geometry as LineGeometry).setPositions(this.rawLineGeometry.getAttribute('position').array as Float32Array);
-    this.line.geometry = this.rawLineGeometry;
+    // console.log("Points are", (new FastCatmullRomCurve3(
+    //   this.rawLineGeometry.attributes.position.array as Float32Array)).getPoints(this.visitedFaceIndices.size * 2)
+    // );
 
+    // this.line.geometry.setFromPoints(
+    //   (new FastCatmullRomCurve3(this.rawLineGeometry.attributes.position.array as Float32Array)).getPoints(this.visitedFaceIndices.size * 5)
+    // );
+
+    console.log("RAW DATA IS", this.rawLineGeometry.attributes.position.array)
+    this.line.geometry = this.createTubeGeometry(
+      (new THREE.CatmullRomCurve3(
+        _.range(this.rawLineGeometry.attributes.position.array.length / 3).map(i => new THREE.Vector3().fromArray(
+          this.rawLineGeometry.attributes.position.array,
+          i * 3,
+        ))
+      )),
+      this.visitedFaceIndices.size,
+    );
+    
     this.nextFaceIndex = crawlRes.nextFaceIndex;
 
     return true;
