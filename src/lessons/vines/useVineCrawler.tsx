@@ -34,8 +34,6 @@ export function useVineCrawler({
     }
   }, [vineCrawler, isDone]);
 
-
-  console.log("LINE IS", vineCrawler?.getLine())
   return {
     // change to getLines (plural)
     line: vineCrawler?.getLine() ?? null,

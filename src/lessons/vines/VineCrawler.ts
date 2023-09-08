@@ -3,22 +3,28 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { setVectorInArray } from '../../utils/bufferHelpers';
 import { getInfoFromFace } from "../../utils/faceHelpers";
-
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
+import { Line2 } from 'three/examples/jsm/lines/Line2';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 
 const _centerVec = new THREE.Vector3();
 const _normalVec = new THREE.Vector3();
 const _vertexIndexVec = new THREE.Vector3();
 
 const lineMat = new THREE.LineBasicMaterial({
-  color: 0x00ff00,
-  linewidth: 5,
-  vertexColors: true,
-  alphaToCoverage: true,
+// const lineMat = new LineMaterial({
+  color: 0xffff00,
+  linewidth: 0.1,
+  // vertexColors: true,
+  // alphaToCoverage: true,
+  // worldUnits: true,
 })
 
 export class VineCrawler {
   // This is the strict point geometry
   private geometry: THREE.BufferGeometry;
+  private rawLineGeometry: THREE.BufferGeometry;
 
   private facePositionInfo: Float32Array;
   private faceNormalInfo: Float32Array;
@@ -29,6 +35,7 @@ export class VineCrawler {
   private visitedFaceIndices: Set<number>;
   private nextFaceIndex: number;
 
+  // private line: Line2;
   private line: THREE.Line;
   private doneCrawling: boolean;
 
@@ -40,6 +47,7 @@ export class VineCrawler {
     visitedFaceIndices: Set<number>;
     nextFaceIndex: number;
     doneCrawling: boolean;
+    rawLineGeometry: THREE.BufferGeometry;
   }) {
     this.geometry = geometry;
 
@@ -51,9 +59,9 @@ export class VineCrawler {
       this.visitedFaceIndices = opts.visitedFaceIndices;
       this.nextFaceIndex = opts.nextFaceIndex;
       this.doneCrawling = opts.doneCrawling;
-      this.line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-        _centerVec.fromArray(this.facePositionInfo, this.nextFaceIndex)
-      ]), lineMat);
+      this.rawLineGeometry = new THREE.BufferGeometry();
+      this.line = this.createLineStub();
+      // this.rawLineGeometry = opts.rawLineGeometry;
       return;
     }
 
@@ -65,7 +73,7 @@ export class VineCrawler {
     if (numFaces === 0) {
       throw new Error(`Empty geometry`)
     }
-  
+
     this.facePositionInfo = new Float32Array(numFaces * 3);
     this.faceNormalInfo = new Float32Array(numFaces * 3);
 
@@ -87,9 +95,33 @@ export class VineCrawler {
     this.visitedFaceIndices = new Set();
     this.nextFaceIndex = this.lowestFaceIndex;
     this.doneCrawling = false;
-    this.line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-      _centerVec.fromArray(this.facePositionInfo, this.nextFaceIndex)
-    ]), lineMat);
+    this.rawLineGeometry = new THREE.BufferGeometry();
+    this.line = this.createLineStub();
+  }
+
+  createLineStub = () => {
+    this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
+      [
+        
+      ]
+    )
+    return new THREE.Line(
+      this.rawLineGeometry,
+      lineMat,
+    )
+    // this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
+    //   [
+    //     new THREE.Vector3(0, 0, 0),
+    //     _centerVec,
+    //   ]
+    // )
+    // return new Line2(
+    //   // this.rawLineGeometry
+    //   new LineGeometry().setPositions(
+    //     this.rawLineGeometry.attributes.position.array.buffer as Float32Array
+    //   ),
+    //   lineMat
+    // )
   }
 
   getInfoFromFaceFast = (faceIndex: number) => {
@@ -125,7 +157,7 @@ export class VineCrawler {
 
     // todo: make a fuzzy min
     const bestFace = _.maxBy([...neighbors].map(
-      faceIndex => ({faceIndex, z: this.facePositionInfo[faceIndex * 3 + 2]})
+      faceIndex => ({ faceIndex, z: this.facePositionInfo[faceIndex * 3 + 2] })
     ).filter(
       f => !visitedFaces.has(f.faceIndex)
     ), v => v.z);
@@ -134,7 +166,7 @@ export class VineCrawler {
       return null;
     }
 
-    const {faceIndex: nextFaceIndex, z: nextFaceZ} = bestFace;
+    const { faceIndex: nextFaceIndex, z: nextFaceZ } = bestFace;
 
     _vertexIndexVec.fromBufferAttribute(this.geometry.index!, currentFaceIndex * 3);
     const currentVertexIndices = _vertexIndexVec.toArray();
@@ -174,11 +206,16 @@ export class VineCrawler {
       return false;
     }
 
+    console.log("INPUT IS", this.geometry, crawlRes.geometryJump,)
     const newGeo = BufferGeometryUtils.mergeGeometries([
-      this.line.geometry, crawlRes.geometryJump
+      this.rawLineGeometry, crawlRes.geometryJump,
     ].filter((v): v is THREE.BufferGeometry => !!v));
+    this.rawLineGeometry = newGeo;
 
-    this.line.geometry = newGeo;
+    // console.log("GEO IS", newGeo)
+
+    // (this.line.geometry as LineGeometry).setPositions(this.rawLineGeometry.getAttribute('position').array as Float32Array);
+    this.line.geometry = this.rawLineGeometry;
 
     this.nextFaceIndex = crawlRes.nextFaceIndex;
 
@@ -204,6 +241,7 @@ export class VineCrawler {
         visitedFaceIndices: this.visitedFaceIndices,
         nextFaceIndex: this.nextFaceIndex,
         doneCrawling: this.doneCrawling,
+        rawLineGeometry: this.rawLineGeometry,
       }
     )
   }

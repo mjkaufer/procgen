@@ -10,9 +10,6 @@ import { useMountSingle } from '../../hooks/useMountSingle';
 import {VineCrawler} from './VineCrawler';
 import { useVineCrawler } from './useVineCrawler';
 
-const CUBE_RES = 64;
-const CUBE_SIZE = 3;
-
 
 // TODO: Maybe move somewhere else?
 interface IVineGrowerProps {
@@ -36,6 +33,7 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
   const {
     scene,
   } = useThree();
+  (window as any).scene = scene;
 
   const {
     geometry: rawGeometry
