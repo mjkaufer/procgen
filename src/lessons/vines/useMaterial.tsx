@@ -58,7 +58,16 @@ export function useMaterial({
     };
   }, [uniforms, material]);
   
+  // TODO: Figure out how to make flat shading work in our materials w/ custom face thing
+  const m = new THREE.MeshNormalMaterial({
+    flatShading: true,
+  });
+  
   return {
-    material
+    material: m
+  }
+
+  return {
+    material,
   }
 }

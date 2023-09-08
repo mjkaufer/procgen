@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { useEffect, useMemo, useState } from "react";
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
-
+// import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
+// doesn't respect faces :(
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { FaceObjLoader } from '../utils/FaceObjLoader';
+import { OBJLoaderImproved } from '../utils/ObjLoaderImproved';
 interface IuseLoadGeometryFromFileProps {
   fileName: string;
   centerAndRotate?: boolean;
@@ -14,10 +16,13 @@ export function useLoadGeometryFromFile({
   fileName,
 }: IuseLoadGeometryFromFileProps) {
   const loader = useMemo(() => {
-    if (fileName.endsWith('.stl')) {
-      return new STLLoader();
-    }
-    return new OBJLoader();
+    // if (fileName.endsWith('.stl')) {
+    //   return new STLLoader();
+    // }
+    // return new OBJLoader();
+    return new FaceObjLoader();
+    // return new OBJLoaderImproved();
+
   }, [fileName]);
 
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
@@ -34,8 +39,8 @@ export function useLoadGeometryFromFile({
       // resource URL
       fileName,
       // called when resource is loaded
-      (object: THREE.Object3D | THREE.Mesh | THREE.BufferGeometry) => {
-        console.log("RAW OBJ IS", object)
+      (object: THREE.BufferGeometry | THREE.Mesh | THREE.Object3D) => {
+
         setIsLoading(false);
         let geometry: THREE.BufferGeometry | null = null;
         if ('geometry' in object) {
@@ -49,6 +54,7 @@ export function useLoadGeometryFromFile({
           setIsError(true);
           return;
         }
+        (window as any).loadedGeo = geometry;
 
         setGeometry(geometry);
       },
@@ -57,7 +63,7 @@ export function useLoadGeometryFromFile({
         console.log("WHAT HAPPEN")
       },
       // called when loading has errors
-      (error) => {
+      (error: Error) => {
         console.log("ERROR?", error.toString())
         if (error) {
           setIsError(true);

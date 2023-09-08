@@ -30,8 +30,8 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
       // state.camera.position.z += (Math.sin(+new Date() / 1000) / 30);
       // state.camera.position.x += (Math.cos(+new Date() / 1000) / 30);
       if (ref.current) {
-        ref.current.rotation.y = props.controlRotation[0]
-        ref.current.rotation.x = props.controlRotation[1]
+        ref.current.rotation.x = -props.controlRotation[0]
+        ref.current.rotation.z = props.controlRotation[1]
       }
     });
 

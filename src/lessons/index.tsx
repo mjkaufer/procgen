@@ -1,4 +1,5 @@
-import { useState } from "react";
+import * as THREE from 'three';
+import { useEffect, useState } from "react";
 import { IView } from "../common";
 import { useJoin } from "../hooks/useJoin";
 import BrickView from "./brick-1/View";
