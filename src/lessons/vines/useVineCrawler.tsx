@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as THREE from 'three';
 import { VineCrawler } from "./VineCrawler";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
@@ -10,7 +10,7 @@ interface IUseVineCrawlerProps {
 export function useVineCrawler({
   geometry,
 }: IUseVineCrawlerProps) {
-  const vineCrawler = useMemo(() => {
+  const rootVineCrawler = useMemo(() => {
     if (!geometry) {
       return null;
     }
@@ -18,26 +18,59 @@ export function useVineCrawler({
     return new VineCrawler(geometry)
   }, [geometry]);
 
+  const [vineCrawlers, setVineCrawlers] = useState<VineCrawler[]>([]);
+  const vineCrawlerGroup = useMemo(() => {
+    return new THREE.Group();
+  }, []);
+
+  const addVineCrawler = useCallback((vineCrawler: VineCrawler) => {
+    setVineCrawlers(oldVineCrawlers => [...oldVineCrawlers, vineCrawler]);
+    vineCrawlerGroup.add(vineCrawler.getLine());
+  }, [vineCrawlerGroup]);
+
+  // when we recreate vine crawler, delete all old vine crawlers
+  useEffect(() => {
+    if (rootVineCrawler !== null) {
+      setVineCrawlers([]);
+      addVineCrawler(rootVineCrawler);
+
+    }
+
+    return () => {
+      setVineCrawlers(currentCrawlers => {
+        currentCrawlers.forEach(c => c.dispose());
+        return [];
+      })
+    };
+  }, [rootVineCrawler]);
+
   const [isDone, setIsDone] = useState(false);
 
   // TODO: Support multiple forks in the tree / some recursive structure
   // won't work well in a hook afaict
-  const stepVine = useCallback(() => {
-    for (let i = 0; i < 10; i++) {
-      if (isDone || !vineCrawler) {
-        return;
-      }
-      const success = vineCrawler.crawl();
-      if (!success) {
-        setIsDone(true);
-      }
+  const stepVines = useCallback(() => {
+    if (isDone || !vineCrawlers.length) {
+      // console.log("IS DONE, GIVE UP")
+      return;
     }
-  }, [vineCrawler, isDone]);
+
+    const crawlersToAdd: VineCrawler[] = [];
+    setIsDone(vineCrawlers.every(v => {
+      const {
+        done, fork,
+      } = v.crawl();
+      console.log("Crawled for", v, "with res", {
+        done, fork,
+      })
+
+      return done && !fork;
+    }))
+    
+  }, [vineCrawlers, isDone]);
 
   return {
-    // change to getLines (plural)
-    line: vineCrawler?.getLine() ?? null,
-    stepVine,
-    vineCrawler,
+    // change to group or something
+    line: vineCrawlerGroup,
+    stepVines,
   }
 }

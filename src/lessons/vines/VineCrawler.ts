@@ -3,29 +3,16 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { setVectorInArray } from '../../utils/bufferHelpers';
 import { getInfoFromFace } from "../../utils/faceHelpers";
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
-import { Line2 } from 'three/examples/jsm/lines/Line2';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { FastCatmullRomCurve3 } from '../../utils/FastCatmullRomCurve3';
 
 const _centerVec = new THREE.Vector3();
 const _normalVec = new THREE.Vector3();
 const _vertexIndexVec = new THREE.Vector3();
 
-// const lineMat = new THREE.LineBasicMaterial({
-// // const lineMat = new LineMaterial({
-//   color: 0xffff00,
-//   linewidth: 0.1,
-//   // vertexColors: true,
-//   // alphaToCoverage: true,
-//   // worldUnits: true,
-// })
-
 // TODO: Texture this
 const tubeMat = new THREE.MeshBasicMaterial({
-    color: 0x2D5A27,
-  })
+  color: 0x2D5A27,
+})
 
 export class VineCrawler {
   // This is the strict point geometry
@@ -107,7 +94,7 @@ export class VineCrawler {
 
   createLineStub = () => {
     return new THREE.Mesh(
-      this.createTubeGeometry(undefined, 1),
+      this.createTubeGeometry(undefined, 0),
       tubeMat,
     );
     // this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
@@ -198,9 +185,12 @@ export class VineCrawler {
     );
   }
 
-  crawl = () => {
+  crawl = (): {done: boolean, fork: boolean} => {
     if (this.doneCrawling) {
-      return false;
+      return {
+        done: true,
+        fork: false,
+      };
     }
 
     // crawl index, update stuff
@@ -208,32 +198,22 @@ export class VineCrawler {
       this.nextFaceIndex,
       this.visitedFaceIndices,
     );
+
     this.visitedFaceIndices.add(this.nextFaceIndex);
 
     if (!crawlRes) {
       this.doneCrawling = true;
-      return false;
+      return {
+        done: true,
+        fork: false,
+      };
     }
 
-    console.log("INPUT IS", this.rawLineGeometry, crawlRes.geometryJump,)
-    console.log("INPUT PT2", Object.keys(this.rawLineGeometry.attributes), Object.keys(crawlRes.geometryJump.attributes))
     const newGeo = BufferGeometryUtils.mergeGeometries([
       this.rawLineGeometry, crawlRes.geometryJump,
     ].filter((v): v is THREE.BufferGeometry => !!v));
     this.rawLineGeometry = newGeo;
 
-    console.log("GEO IS", newGeo);
-
-    // (this.line.geometry as LineGeometry).setPositions(this.rawLineGeometry.getAttribute('position').array as Float32Array);
-    // console.log("Points are", (new FastCatmullRomCurve3(
-    //   this.rawLineGeometry.attributes.position.array as Float32Array)).getPoints(this.visitedFaceIndices.size * 2)
-    // );
-
-    // this.line.geometry.setFromPoints(
-    //   (new FastCatmullRomCurve3(this.rawLineGeometry.attributes.position.array as Float32Array)).getPoints(this.visitedFaceIndices.size * 5)
-    // );
-
-    console.log("RAW DATA IS", this.rawLineGeometry.attributes.position.array)
     this.line.geometry = this.createTubeGeometry(
       (new THREE.CatmullRomCurve3(
         _.range(this.rawLineGeometry.attributes.position.array.length / 3).map(i => new THREE.Vector3().fromArray(
@@ -246,7 +226,11 @@ export class VineCrawler {
     
     this.nextFaceIndex = crawlRes.nextFaceIndex;
 
-    return true;
+    return {
+      done: false,
+      // TODO: Update fork logic
+      fork: false,
+    };
   }
 
   getLine = () => {
@@ -271,6 +255,10 @@ export class VineCrawler {
         rawLineGeometry: this.rawLineGeometry,
       }
     )
+  }
+
+  dispose = () => {
+    this.line.removeFromParent();
   }
 }
 
