@@ -3,11 +3,13 @@ import { IView } from "../common";
 import { useJoin } from "../hooks/useJoin";
 import BrickView from "./brick-1/View";
 import SpookyTorusView from "./spooky-torus/View";
+import VinesView from "./vines/View";
 
 // Add new lessons here!
 const lessons: IView[] = [
   BrickView,
   SpookyTorusView,
+  VinesView,
 ].reverse();
 
 function LessonSelector() {
@@ -27,7 +29,9 @@ function LessonSelector() {
   })
   return (
     <>
+      <div className="canvas-wrapper">
       {currentLesson.component()}
+      </div>
       <div className="lesson-navbar">
         <div>
           <div>

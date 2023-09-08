@@ -57,3 +57,7 @@ body {
 .lesson-navbar p {
   margin: 0;
 }
+
+.canvas-wrapper, .canvas-wrapper > div {
+  height: 100%;
+}

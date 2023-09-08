@@ -11,7 +11,7 @@ const CUBE_SIZE = 3;
 
 interface IMainMeshProps {
   controlRotation: [number, number];
-  lightingAtCamera: boolean;
+  lightingAtCamera?: boolean;
 }
 function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
   // This reference gives us direct access to the THREE.Mesh object
@@ -37,7 +37,7 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
 
   const {
     material,
-  } = useMaterial({lightingAtCamera: props.lightingAtCamera})
+  } = useMaterial({lightingAtCamera: props.lightingAtCamera ?? true})
 
 
   return (
