@@ -31,8 +31,10 @@ export class VineCrawler {
   // private line: Line2;
   private line: THREE.Mesh;
   private doneCrawling: boolean;
+  private localMaximumThreshold: number | undefined;
+  private localMaximum: number;
 
-  constructor(geometry: THREE.BufferGeometry, opts?: {
+  constructor(geometry: THREE.BufferGeometry, localMaximumThreshold: number | undefined, cloneOpts?: {
     facePositionInfo: Float32Array;
     faceNormalInfo: Float32Array;
     facesByVertexIndex: Record<number, Set<number>>;
@@ -41,17 +43,20 @@ export class VineCrawler {
     nextFaceIndex: number;
     doneCrawling: boolean;
     rawLineGeometry: THREE.BufferGeometry;
+    localMaximum: number;
   }) {
     this.geometry = geometry;
+    this.localMaximumThreshold = localMaximumThreshold;
 
-    if (opts) {
-      this.facePositionInfo = opts.facePositionInfo;
-      this.faceNormalInfo = opts.faceNormalInfo;
-      this.facesByVertexIndex = opts.facesByVertexIndex;
-      this.lowestFaceIndex = opts.lowestFaceIndex;
-      this.visitedFaceIndices = opts.visitedFaceIndices;
-      this.nextFaceIndex = opts.nextFaceIndex;
-      this.doneCrawling = opts.doneCrawling;
+    if (cloneOpts) {
+      this.facePositionInfo = cloneOpts.facePositionInfo;
+      this.faceNormalInfo = cloneOpts.faceNormalInfo;
+      this.facesByVertexIndex = cloneOpts.facesByVertexIndex;
+      this.lowestFaceIndex = cloneOpts.lowestFaceIndex;
+      this.visitedFaceIndices = cloneOpts.visitedFaceIndices;
+      this.nextFaceIndex = cloneOpts.nextFaceIndex;
+      this.doneCrawling = cloneOpts.doneCrawling;
+      this.localMaximum = cloneOpts.localMaximum;
       this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
       this.line = this.createLineStub();
       // this.rawLineGeometry = opts.rawLineGeometry;
@@ -90,6 +95,7 @@ export class VineCrawler {
     this.doneCrawling = false;
     this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
     this.line = this.createLineStub();
+    this.localMaximum = -Infinity;
   }
 
   createLineStub = () => {
@@ -155,6 +161,13 @@ export class VineCrawler {
     }
 
     const { faceIndex: nextFaceIndex, z: nextFaceZ } = bestFace;
+
+    // If we are going down by a LOT, stop
+    if (this.localMaximumThreshold !== undefined && this.localMaximum - nextFaceZ > this.localMaximumThreshold) {
+      return null;
+    }
+
+    this.localMaximum = Math.max(this.localMaximum, nextFaceZ);
 
     _vertexIndexVec.fromBufferAttribute(this.geometry.index!, currentFaceIndex * 3);
     const currentVertexIndices = _vertexIndexVec.toArray();
@@ -233,6 +246,11 @@ export class VineCrawler {
     };
   }
 
+  // 
+  // shouldSplit = (minToSplit: number = 3) => {
+
+  // }
+
   getLine = () => {
     return this.line;
   }
@@ -244,15 +262,19 @@ export class VineCrawler {
   clone = () => {
     return new VineCrawler(
       this.geometry,
+      this.localMaximumThreshold,
       {
         facePositionInfo: this.facePositionInfo,
         faceNormalInfo: this.faceNormalInfo,
         facesByVertexIndex: this.facesByVertexIndex,
         lowestFaceIndex: this.lowestFaceIndex,
+        // When cloning, choose to reuse visitedFaceIndices, so we don't overlap!
+        // Might want to change later
         visitedFaceIndices: this.visitedFaceIndices,
         nextFaceIndex: this.nextFaceIndex,
         doneCrawling: this.doneCrawling,
         rawLineGeometry: this.rawLineGeometry,
+        localMaximum: this.localMaximum,
       }
     )
   }

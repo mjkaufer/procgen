@@ -9,6 +9,7 @@ import { getInfoFromFace } from '../../utils/faceHelpers';
 import { useMountSingle } from '../../hooks/useMountSingle';
 import {VineCrawler} from './VineCrawler';
 import { useVineCrawler } from './useVineCrawler';
+import { useInterval } from 'usehooks-ts';
 
 
 // TODO: Maybe move somewhere else?
@@ -16,6 +17,7 @@ interface IVineGrowerProps {
   controlRotation: [number, number];
   fileName?: MeshName;
   doSomething: boolean;
+  crawlSpeedSecs: number;
 }
 
 enum MeshName {
@@ -88,6 +90,7 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
     const {
       stepVines,
       line,
+      isDone,
     } = useVineCrawler({geometry: geometry ?? null});
 
     useMountSingle(line, meshGroup);
@@ -118,6 +121,8 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
       stepVines,
     ])
 
+    useInterval(stepVines, isDone ? null : props.crawlSpeedSecs * 1000);
+
   return null;
 }
 
@@ -138,8 +143,13 @@ export function Scene() {
     
   }, [])
 
-  const {"Do Something": doSomething} = useControls({
+  const {"Do Something": doSomething, "Vine Speed": vineSpeed} = useControls({
     "Do Something": false,
+    "Vine Speed": {
+      value: 0.5,
+      min: 0.1,
+      max: 4,
+    }
   })
 
 
@@ -161,7 +171,7 @@ export function Scene() {
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }} camera={{ fov: 75, position: [0, -10, 0]}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <VineGrower position={[0, 0, 0]} controlRotation={controlRotation} doSomething={doSomething} />
+      <VineGrower position={[0, 0, 0]} controlRotation={controlRotation} doSomething={doSomething} crawlSpeedSecs={vineSpeed} />
 
     </Canvas>
   )

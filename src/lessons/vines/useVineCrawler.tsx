@@ -15,7 +15,7 @@ export function useVineCrawler({
       return null;
     }
 
-    return new VineCrawler(geometry)
+    return new VineCrawler(geometry, 0.5)
   }, [geometry]);
 
   const [vineCrawlers, setVineCrawlers] = useState<VineCrawler[]>([]);
@@ -72,5 +72,6 @@ export function useVineCrawler({
     // change to group or something
     line: vineCrawlerGroup,
     stepVines,
+    isDone,
   }
 }
