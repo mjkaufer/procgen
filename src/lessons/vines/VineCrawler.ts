@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
+import { generateUUID } from 'three/src/math/MathUtils';
 import { setVectorInArray } from '../../utils/bufferHelpers';
 import { getInfoFromFace } from "../../utils/faceHelpers";
 import { FastCatmullRomCurve3 } from '../../utils/FastCatmullRomCurve3';
@@ -16,6 +17,7 @@ const tubeMat = new THREE.MeshBasicMaterial({
 
 export class VineCrawler {
   // This is the strict point geometry
+  private uuid: string = generateUUID();
   private geometry: THREE.BufferGeometry;
   private rawLineGeometry: THREE.BufferGeometry;
 
@@ -33,6 +35,7 @@ export class VineCrawler {
   private doneCrawling: boolean;
   private localMaximumThreshold: number | undefined;
   private localMaximum: number;
+  private lastFork: number = 0;
 
   constructor(geometry: THREE.BufferGeometry, localMaximumThreshold: number | undefined, cloneOpts?: {
     facePositionInfo: Float32Array;
@@ -57,7 +60,7 @@ export class VineCrawler {
       this.nextFaceIndex = cloneOpts.nextFaceIndex;
       this.doneCrawling = cloneOpts.doneCrawling;
       this.localMaximum = cloneOpts.localMaximum;
-      this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
+      this.rawLineGeometry = cloneOpts.rawLineGeometry;
       this.line = this.createLineStub();
       // this.rawLineGeometry = opts.rawLineGeometry;
       return;
@@ -88,10 +91,12 @@ export class VineCrawler {
     }
 
     // Get face w/ smallest Z value
-    this.lowestFaceIndex = _.minBy(_.range(numFaces), faceIndex => this.facePositionInfo[faceIndex * 3 + 2])!;
+    const lowestFaces = _.sortBy(_.range(numFaces), faceIndex => this.facePositionInfo[faceIndex * 3 + 2]);
+    this.lowestFaceIndex = _.first(lowestFaces)!;
 
     this.visitedFaceIndices = new Set();
-    this.nextFaceIndex = this.lowestFaceIndex;
+    // this.nextFaceIndex = this.lowestFaceIndex;
+    this.nextFaceIndex = _.sample(lowestFaces.slice(0, 5))!;
     this.doneCrawling = false;
     this.rawLineGeometry = (new THREE.BufferGeometry()).setFromPoints([]);
     this.line = this.createLineStub();
@@ -100,7 +105,7 @@ export class VineCrawler {
 
   createLineStub = () => {
     return new THREE.Mesh(
-      this.createTubeGeometry(undefined, 0),
+      new THREE.BufferGeometry(),
       tubeMat,
     );
     // this.rawLineGeometry = new THREE.BufferGeometry().setFromPoints(
@@ -150,11 +155,25 @@ export class VineCrawler {
     }
 
     // todo: make a fuzzy min
-    const bestFace = _.maxBy([...neighbors].map(
+    // const bestFace = _.maxBy([...neighbors].map(
+    //   faceIndex => ({ faceIndex, z: this.facePositionInfo[faceIndex * 3 + 2] })
+    // ).filter(
+    //   f => !visitedFaces.has(f.faceIndex)
+    // ), v => v.z);
+
+    
+    // Keep as an array so we can be positive there'll be something to fork to if we choose to do so
+    // But don't keep as array if we don't need to fork at all
+    const shouldFork = this.shouldFork();
+
+    const facesToCheck = [...neighbors].map(
       faceIndex => ({ faceIndex, z: this.facePositionInfo[faceIndex * 3 + 2] })
     ).filter(
       f => !visitedFaces.has(f.faceIndex)
-    ), v => v.z);
+    );
+
+    const bestFaces = shouldFork ? _.sortBy(facesToCheck, v => v.z) : [_.maxBy(facesToCheck, v => v.z)!];
+    const bestFace = _.last(bestFaces);
 
     if (!bestFace) {
       return null;
@@ -181,28 +200,35 @@ export class VineCrawler {
     const midpoint = vectors.reduce((acc, curr) => acc.add(curr)).divideScalar(vectors.length);
     _centerVec.fromArray(this.facePositionInfo, nextFaceIndex * 3);
 
+    // const forkFaceIndex = this.shouldFork() && bestFaces.length > 3 ? bestFaces[Math.floor(bestFaces.length / 2)].faceIndex : undefined;
+    // Use currentFaceIndex rather than random best face, so that we can continue from last point / have continual vine
+    // Plus we'll auto filter the next face in this branch anyways
+    const forkFaceIndex = shouldFork && bestFaces.length > 3 ? currentFaceIndex : undefined;
+    
     return {
       geometryJump: (new THREE.BufferGeometry()).setFromPoints([
         midpoint,
         _centerVec,
       ]),
       nextFaceIndex,
+      forkFaceIndex,
     }
   }
 
   createTubeGeometry = (curve: THREE.Curve<THREE.Vector3> | undefined, numPoints: number) => {
-    return new THREE.TubeGeometry(
+    const tg = new THREE.TubeGeometry(
       curve,
       numPoints * 4,
       0.05,
     );
+    return tg;
   }
 
-  crawl = (): {done: boolean, fork: boolean} => {
+  crawl = (): {done: boolean, childrenToAdd: VineCrawler[]} => {
     if (this.doneCrawling) {
       return {
         done: true,
-        fork: false,
+        childrenToAdd: [],
       };
     }
 
@@ -218,7 +244,7 @@ export class VineCrawler {
       this.doneCrawling = true;
       return {
         done: true,
-        fork: false,
+        childrenToAdd: [],
       };
     }
 
@@ -234,7 +260,7 @@ export class VineCrawler {
           i * 3,
         ))
       )),
-      this.visitedFaceIndices.size,
+      this.getNumPoints() + 2,
     );
     
     this.nextFaceIndex = crawlRes.nextFaceIndex;
@@ -242,14 +268,27 @@ export class VineCrawler {
     return {
       done: false,
       // TODO: Update fork logic
-      fork: false,
+      childrenToAdd: crawlRes.forkFaceIndex ? [this.clone(crawlRes.forkFaceIndex)] : [],
     };
   }
+  
+  shouldFork = (minToFork: number = 2) => {
+    const vineLength = this.getNumPoints();
+    const lengthSinceLastFork = vineLength - this.lastFork;
 
-  // 
-  // shouldSplit = (minToSplit: number = 3) => {
+    if (lengthSinceLastFork <= minToFork) {
+      return false;
+    }
 
-  // }
+    // The more global entries we have, the fewer forks we want
+    // Not totally sure what this does xd but it looks nicer
+    const res = Math.random() > 1 / (lengthSinceLastFork - minToFork);
+
+    if (res) {
+      this.lastFork = vineLength;
+    }
+    return res;
+  }
 
   getLine = () => {
     return this.line;
@@ -259,7 +298,22 @@ export class VineCrawler {
     return this.lowestFaceIndex;
   }
 
-  clone = () => {
+  getNumPoints = () => {
+    return this.rawLineGeometry.getAttribute('position').array.length / 3;
+  }
+
+  clone = (forkFaceIndex?: number, keepSomeGeometry: boolean = true) => {
+    // Need to keep a chunk of last stuff so we don't make points appear from nowhere
+    const newRawLineGeometry = this.rawLineGeometry.clone();
+    if (keepSomeGeometry) {
+      const numPoints = this.getNumPoints();
+      newRawLineGeometry.setAttribute('position', new THREE.BufferAttribute(newRawLineGeometry.getAttribute('position').array.slice(
+        Math.max((numPoints - 2) * 3, 0),
+      ), 3))
+    } else {
+      newRawLineGeometry.setFromPoints([]);
+    }
+
     return new VineCrawler(
       this.geometry,
       this.localMaximumThreshold,
@@ -271,9 +325,10 @@ export class VineCrawler {
         // When cloning, choose to reuse visitedFaceIndices, so we don't overlap!
         // Might want to change later
         visitedFaceIndices: this.visitedFaceIndices,
-        nextFaceIndex: this.nextFaceIndex,
+        nextFaceIndex: forkFaceIndex ?? this.nextFaceIndex,
         doneCrawling: this.doneCrawling,
-        rawLineGeometry: this.rawLineGeometry,
+        rawLineGeometry: newRawLineGeometry,
+        // rawLineGeometry: new THREE.BufferGeometry().setFromPoints([]),
         localMaximum: this.localMaximum,
       }
     )
@@ -281,6 +336,16 @@ export class VineCrawler {
 
   dispose = () => {
     this.line.removeFromParent();
+    this.rawLineGeometry.dispose();
+  }
+
+  toString = () => {
+    return JSON.stringify({
+      uuid: this.uuid,
+      nextFaceIndex: this.nextFaceIndex,
+      lastFork: this.lastFork,
+      doneCrawling: this.doneCrawling,
+    }, undefined, 2)
   }
 }
 

@@ -32,10 +32,13 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
     material,
   } = useMaterial({});
 
+  const allThree = useThree();
   const {
     scene,
-  } = useThree();
+  } = allThree;
   (window as any).scene = scene;
+  (window as any).allThree = allThree;
+  allThree.gl.getContext()
 
   const {
     geometry: rawGeometry
@@ -118,7 +121,6 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
 
     }, [
       props.doSomething,
-      stepVines,
     ])
 
     useInterval(stepVines, isDone ? null : props.crawlSpeedSecs * 1000);

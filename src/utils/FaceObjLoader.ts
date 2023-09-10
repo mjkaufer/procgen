@@ -34,26 +34,17 @@ export class FaceObjLoader {
   
       lines.forEach(line => {
         if (line.startsWith('v ')) {
-          console.log("Setting pointBuffer at", pointIndex * 3, "/", pointBuffer.length, "with line", line)
           insertLineToArr(line, pointIndex, pointBuffer, 3);
           pointIndex++;
         } else if (line.startsWith('vn ')) {
-          console.log("Setting normalBuffer at", normalIndex * 3, "/", normalBuffer.length, "with line", line)
           insertLineToArr(line, normalIndex, normalBuffer, 3);
           normalIndex++;
         } else if (line.startsWith('f ')) {
           // The faces are 1-indexed, so for post-processing, need to remove a value
           // Maybe better to batch-do this at the end? Not sure
-          console.log("Setting faceBuffer at", faceIndex * 3, "/", faceBuffer.length, "with line", line)
           insertLineToArr(line, faceIndex, faceBuffer, 3, v => v - 1);
           faceIndex++;
         }
-      })
-  
-      console.log("LOADED WITH", {
-        pointBuffer,
-        normalBuffer,
-        faceBuffer,
       })
   
       

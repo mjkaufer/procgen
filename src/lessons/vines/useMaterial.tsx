@@ -27,11 +27,17 @@ export function useMaterial({
   }, []);
 
   const material = useMemo(() => {
-    return new THREE.RawShaderMaterial({
+    const mat = new THREE.RawShaderMaterial({
+      extensions: {
+        derivatives: true, // set to use derivatives
+      },
       fragmentShader,
       vertexShader,
       uniforms,
-    })
+      
+    });
+    return mat;
+
   }, []);
 
   // Whenever uniforms changes, manually update everything in main material
@@ -61,11 +67,17 @@ export function useMaterial({
   // TODO: Figure out how to make flat shading work in our materials w/ custom face thing
   const m = new THREE.MeshNormalMaterial({
     flatShading: true,
+    opacity: 0.5,
   });
+  // const m = new THREE.MeshBasicMaterial({
+  //   // flatShading: true,
+  //   opacity: 0.5,
+  //   color: 0xeeeeee,
+  // });
   
-  return {
-    material: m
-  }
+  // return {
+  //   material: m
+  // }
 
   return {
     material,

@@ -23,17 +23,17 @@ export function useVineCrawler({
     return new THREE.Group();
   }, []);
 
-  const addVineCrawler = useCallback((vineCrawler: VineCrawler) => {
-    setVineCrawlers(oldVineCrawlers => [...oldVineCrawlers, vineCrawler]);
-    vineCrawlerGroup.add(vineCrawler.getLine());
+  const addVineCrawlers = useCallback((vineCrawlers: VineCrawler[]) => {
+    setVineCrawlers(oldVineCrawlers => [...oldVineCrawlers, ...vineCrawlers]);
+    vineCrawlers.forEach(v => vineCrawlerGroup.add(v.getLine()));
+    
   }, [vineCrawlerGroup]);
 
   // when we recreate vine crawler, delete all old vine crawlers
   useEffect(() => {
     if (rootVineCrawler !== null) {
       setVineCrawlers([]);
-      addVineCrawler(rootVineCrawler);
-
+      addVineCrawlers([rootVineCrawler]);
     }
 
     return () => {
@@ -55,16 +55,27 @@ export function useVineCrawler({
     }
 
     const crawlersToAdd: VineCrawler[] = [];
-    setIsDone(vineCrawlers.every(v => {
+    console.log("--- START BATCH")
+    console.log("CRAWLING ON", vineCrawlers.length)
+    let allCrawlersDone = true;
+    vineCrawlers.forEach(v => {
       const {
-        done, fork,
+        done, childrenToAdd,
       } = v.crawl();
-      console.log("Crawled for", v, "with res", {
-        done, fork,
-      })
+      
+      if (childrenToAdd.length) {
+        console.log("WE FORKING!!!")
+        crawlersToAdd.push(...childrenToAdd)
+      }
 
-      return done && !fork;
-    }))
+      allCrawlersDone = done && !childrenToAdd.length;
+    });
+    console.log("--- DONE W BATCH")
+    
+    if (crawlersToAdd.length) {
+      addVineCrawlers(crawlersToAdd);
+    }
+    setIsDone(allCrawlersDone);
     
   }, [vineCrawlers, isDone]);
 

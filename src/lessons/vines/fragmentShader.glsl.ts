@@ -22,17 +22,12 @@ export default glsl`
 
   void main() {
 
-    float baseVal = lightingAtCamera ? (
+    float baseVal = (
       dot(
         (normalize(
           projPos - vec3(viewMatrix * vec4(vec3(cameraPosition), 1.0))
         )),
         relN
-      )
-    ) : (
-      dot(
-        (normalize(cameraPosition - pos)),
-        N
       )
     );
 
