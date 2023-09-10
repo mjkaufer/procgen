@@ -5,12 +5,14 @@ import { useJoin } from "../hooks/useJoin";
 import BrickView from "./brick-1/View";
 import SpookyTorusView from "./spooky-torus/View";
 import VinesView from "./vines/View";
+import DeformView from "./deform/View";
 
 // Add new lessons here!
 const lessons: IView[] = [
   BrickView,
   SpookyTorusView,
   VinesView,
+  DeformView,
 ].reverse();
 
 function LessonSelector() {

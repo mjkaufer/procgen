@@ -5,38 +5,27 @@ import { useMaterial } from './useMaterial';
 import { useControls } from 'leva';
 import { useMouseDrag } from '../../hooks/useMouseDrag';
 import { useLoadGeometryFromFile } from '../../hooks/useLoadGeometryFromFile';
-import { getInfoFromFace } from '../../utils/faceHelpers';
-import { useMountSingle } from '../../hooks/useMountSingle';
-import {VineCrawler} from './VineCrawler';
-import { useVineCrawler } from './useVineCrawler';
-import { useInterval } from 'usehooks-ts';
 import { MeshName } from '../../utils/meshes';
+import { useMountSingle } from '../../hooks/useMountSingle';
+
+const CUBE_RES = 64;
+const CUBE_SIZE = 3;
 
 
-// TODO: Maybe move somewhere else?
-interface IVineGrowerProps {
+interface IMainMeshProps {
   controlRotation: [number, number];
-  fileName?: MeshName;
-  doSomething: boolean;
-  crawlSpeedSecs: number;
 }
+function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
+  // This reference gives us direct access to the THREE.Mesh object
+  const ref = useRef<THREE.Mesh>(null);
 
-function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
-  const fileName = props.fileName ?? MeshName.Statue;
+  // Hold state for hovered and clicked events
+  const [hovered, hover] = useState(false);
+  const [clicked, click] = useState(false);
 
+  const {scene} = useThree();
 
-  const {
-    material,
-  } = useMaterial({});
-
-  const allThree = useThree();
-  const {
-    scene,
-  } = allThree;
-  (window as any).scene = scene;
-  (window as any).allThree = allThree;
-  allThree.gl.getContext()
-
+  const fileName = MeshName.Statue;
   const {
     geometry: rawGeometry
   } = useLoadGeometryFromFile({
@@ -67,6 +56,11 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
     return g;
   }, []);
 
+
+  const {
+    material,
+  } = useMaterial({});
+
   const meshRaw = useMemo(() => {
     if (!geometry || !material) {
       return null;
@@ -86,24 +80,28 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
         meshGroup.rotation.x = props.controlRotation[1]
       }
     });
+    
 
-    const {
-      stepVines,
-      line,
-      isDone,
-    } = useVineCrawler({geometry: geometry ?? null});
 
-    useMountSingle(line, meshGroup);
+  return (
+    <mesh
+      {...props}
+      ref={ref}
+      scale={clicked ? 1.5 : 1}
+      // onClick={(event) => click(!clicked)}
+      onPointerOver={(event) => hover(true)}
+      onPointerOut={(event) => hover(false)}
+      material={material}
+    >
+      
 
-    useInterval(stepVines, isDone ? null : props.crawlSpeedSecs * 1000);
-
-  return null;
+    </mesh>
+  )
 }
 
 const MOUSE_SCALING = 100;
 
 export function Scene() {
-
   // Kind of strange, default threejs orientation is pain in butt for this idea, but don't
   // want to break everything else
   // TODO: Consolidate later
@@ -117,18 +115,9 @@ export function Scene() {
     
   }, [])
 
-  const {
-    // "Do Something": doSomething,
-    "Vine Speed": vineSpeed
-  } = useControls({
-    // "Do Something": false,
-    "Vine Speed": {
-      value: 0.5,
-      min: 0.1,
-      max: 4,
-    }
-  })
-
+  // const {
+  // } = useControls({
+  // });
 
   const { mouseState } = useMouseDrag({});
 
@@ -148,8 +137,7 @@ export function Scene() {
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }} camera={{ fov: 75, position: [0, -10, 0]}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <VineGrower position={[0, 0, 0]} controlRotation={controlRotation} doSomething={false} crawlSpeedSecs={vineSpeed} />
-
+      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation}/>
     </Canvas>
   )
 
