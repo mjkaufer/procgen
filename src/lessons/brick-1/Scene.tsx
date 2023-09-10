@@ -38,7 +38,6 @@ interface IBrickProps {
   shape: BrickShape;
 }
 function Brick(props: Partial<MeshProps> & IBrickProps) {
-  console.log("RERENDERING??")
   // This reference gives us direct access to the THREE.Mesh object
   const ref = useRef<THREE.Mesh>(null);
 

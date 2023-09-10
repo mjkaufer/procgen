@@ -98,31 +98,6 @@ function VineGrower(props: Partial<MeshProps> & IVineGrowerProps) {
 
     useMountSingle(line, meshGroup);
 
-    useEffect(() => {
-      // const geo = meshRaw?.geometry;
-      // if (!geo) {
-      //   return;
-      // }
-      // const faces = geo.index?.array;
-      // if (!faces) {
-      //   return;
-      // }
-      
-      // // const randomFaceIndex = Math.floor(Math.random() * faces.length / 3);
-      // const randomFaceIndex = vineCrawler.getLowestFaceIndex();
-      // console.log("ADDING", randomFaceIndex);
-      // const info = getInfoFromFace(randomFaceIndex, geo)
-      // if (info) {
-      //   const arrowHelper = new THREE.ArrowHelper( info.normalVec, info.centerVec, 5, 0xff0000 );
-      //   meshGroup.add(arrowHelper)
-      // }
-      stepVines();
-
-
-    }, [
-      props.doSomething,
-    ])
-
     useInterval(stepVines, isDone ? null : props.crawlSpeedSecs * 1000);
 
   return null;
@@ -145,8 +120,11 @@ export function Scene() {
     
   }, [])
 
-  const {"Do Something": doSomething, "Vine Speed": vineSpeed} = useControls({
-    "Do Something": false,
+  const {
+    // "Do Something": doSomething,
+    "Vine Speed": vineSpeed
+  } = useControls({
+    // "Do Something": false,
     "Vine Speed": {
       value: 0.5,
       min: 0.1,
@@ -173,7 +151,7 @@ export function Scene() {
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }} camera={{ fov: 75, position: [0, -10, 0]}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <VineGrower position={[0, 0, 0]} controlRotation={controlRotation} doSomething={doSomething} crawlSpeedSecs={vineSpeed} />
+      <VineGrower position={[0, 0, 0]} controlRotation={controlRotation} doSomething={false} crawlSpeedSecs={vineSpeed} />
 
     </Canvas>
   )

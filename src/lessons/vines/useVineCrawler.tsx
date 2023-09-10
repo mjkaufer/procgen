@@ -50,13 +50,10 @@ export function useVineCrawler({
   // won't work well in a hook afaict
   const stepVines = useCallback(() => {
     if (isDone || !vineCrawlers.length) {
-      // console.log("IS DONE, GIVE UP")
       return;
     }
 
     const crawlersToAdd: VineCrawler[] = [];
-    console.log("--- START BATCH")
-    console.log("CRAWLING ON", vineCrawlers.length)
     let allCrawlersDone = true;
     vineCrawlers.forEach(v => {
       const {
@@ -64,13 +61,11 @@ export function useVineCrawler({
       } = v.crawl();
       
       if (childrenToAdd.length) {
-        console.log("WE FORKING!!!")
         crawlersToAdd.push(...childrenToAdd)
       }
 
       allCrawlersDone = done && !childrenToAdd.length;
     });
-    console.log("--- DONE W BATCH")
     
     if (crawlersToAdd.length) {
       addVineCrawlers(crawlersToAdd);

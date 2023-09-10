@@ -65,7 +65,6 @@ export function useMaterial({
     const update = () => {
       material.uniforms.time.value = (+Date.now() - initialDate) / 1000;
       material.uniformsNeedUpdate = true;
-      console.log("Triggered!")
       shouldUpdate && window.requestAnimationFrame(update);
     };
     update();

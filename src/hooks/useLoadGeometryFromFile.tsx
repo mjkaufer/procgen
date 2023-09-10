@@ -60,11 +60,11 @@ export function useLoadGeometryFromFile({
       },
       // called when loading is in progresses
       () => {
-        console.log("WHAT HAPPEN")
+        console.log("...")
       },
       // called when loading has errors
       (error: Error) => {
-        console.log("ERROR?", error.toString())
+        console.log("LOAD ERROR?", error.toString())
         if (error) {
           setIsError(true);
           setIsLoading(false);

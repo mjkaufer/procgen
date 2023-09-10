@@ -569,7 +569,6 @@ class OBJLoaderImproved extends Loader {
 
 				const lineData = line.slice( 1 ).trim();
         const vertexData = lineData.split( _face_vertex_data_separator_pattern );
-        console.log("FACE VERTEX DATA", vertexData)
 				const faceVertices = [];
 
 				// Parse the face vertex data into an easy to work with format
@@ -587,7 +586,6 @@ class OBJLoaderImproved extends Loader {
 
 				}
 
-        console.log("PT 2", faceVertices)
 				// Draw an edge between the first vertex and all subsequent vertices to form an n-gon
 
 				const v1 = faceVertices[ 0 ];
@@ -717,7 +715,6 @@ class OBJLoaderImproved extends Loader {
 		}
 
     state.finalize();
-    console.log("STATE IS", state)
 
 		const container = new Group();
 		container.materialLibraries = [].concat( state.materialLibraries );
