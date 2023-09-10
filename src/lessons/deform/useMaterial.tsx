@@ -6,18 +6,29 @@ import fragmentShader from './fragmentShader.glsl';
 
 
 interface IMaterialProps {
+  bbox: THREE.Box3 | null;
 }
 
+const v3 = new THREE.Vector3();
+const vC = new THREE.Vector3();
+
 export function useMaterial({
+  bbox
 }: IMaterialProps) {
 
   const initTime = 0;
 
+  const slant = useMemo(() => {
+    return bbox ? bbox.getCenter(vC).sub(bbox.max).negate() : v3;
+  }, [bbox]);
   const uniformsRaw = useMemo(() => {
     return {
       time: initTime,
+      bboxMin: bbox?.min ?? v3,
+      bboxMax: bbox?.max ?? v3,
+      slant,
     }
-  }, []);
+  }, [bbox]);
 
   const uniforms = useMemo(() => {
     return _.mapValues(uniformsRaw, v => new THREE.Uniform(v));

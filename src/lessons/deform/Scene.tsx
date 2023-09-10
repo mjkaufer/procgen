@@ -56,10 +56,23 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
     return g;
   }, []);
 
+  const bbox = useMemo(() => {
+    if (!geometry) {
+      return null;
+    }
+    if (!geometry.boundingBox) {
+      geometry.computeBoundingBox();
+    }
+
+    return geometry.boundingBox;
+  }, [geometry])
+
 
   const {
     material,
-  } = useMaterial({});
+  } = useMaterial({
+    bbox,
+  });
 
   const meshRaw = useMemo(() => {
     if (!geometry || !material) {
