@@ -27,7 +27,7 @@ export function useMaterial({
   }, []);
 
   const material = useMemo(() => {
-    const mat = new THREE.RawShaderMaterial({
+    const mat = new THREE.ShaderMaterial({
       extensions: {
         derivatives: true, // set to use derivatives
       },
