@@ -1,14 +1,19 @@
 import * as THREE from 'three';
 import { useEffect, useMemo, useState } from 'react';
 import _ from 'lodash';
-import vertexShader from './vertexShader.glsl';
-import fragmentShader from './fragmentShader.glsl';
+import vertexShader from './outerVertexShader.glsl';
+import fragmentShader from './outerFragmentShader.glsl';
 
 
+console.log("STUFF IS", vertexShader, "AND", fragmentShader)
 interface IMaterialProps {
+  pixelOffset: number;
+  pixelSize: number;
 }
 
-export function useMaterial({
+export function useOuterMaterial({
+  pixelOffset,
+  pixelSize,
 }: IMaterialProps) {
 
   const initTime = 0;
@@ -16,8 +21,10 @@ export function useMaterial({
   const uniformsRaw = useMemo(() => {
     return {
       time: initTime,
+      pixelOffset,
+      pixelSize,
     }
-  }, []);
+  }, [pixelOffset, pixelSize]);
 
   const uniforms = useMemo(() => {
     return _.mapValues(uniformsRaw, v => new THREE.Uniform(v));
@@ -28,9 +35,10 @@ export function useMaterial({
       fragmentShader,
       vertexShader,
       uniforms,
-      // transparent: true,
+      transparent: true,
     })
   }, []);
+
 
   // Whenever uniforms changes, manually update everything in main material
   useEffect(() => {

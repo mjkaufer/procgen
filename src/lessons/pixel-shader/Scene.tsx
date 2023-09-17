@@ -7,6 +7,8 @@ import { useMouseDrag } from '../../hooks/useMouseDrag';
 import { useLoadGeometryFromFile } from '../../hooks/useLoadGeometryFromFile';
 import { MeshName } from '../../utils/meshes';
 import { useMountSingle } from '../../hooks/useMountSingle';
+import { useObjMesh } from '../../hooks/useObjMesh';
+import { useOuterMaterial } from './useOuterMaterial';
 
 const CUBE_RES = 64;
 const CUBE_SIZE = 3;
@@ -14,8 +16,17 @@ const CUBE_SIZE = 3;
 
 interface IMainMeshProps {
   controlRotation: [number, number];
+  pixelOffset: number;
+  pixelSize: number;
 }
+
 function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
+
+  const {
+    controlRotation,
+    pixelSize,
+    pixelOffset,
+  } = props;
   // This reference gives us direct access to the THREE.Mesh object
   const ref = useRef<THREE.Mesh>(null);
 
@@ -26,33 +37,9 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
   const {scene} = useThree();
 
   const fileName = MeshName.Statue;
-  const {
-    geometry: rawGeometry
-  } = useLoadGeometryFromFile({
-    fileName,
-  })
-
-  const geometry = useMemo(() => {
-    if (!rawGeometry) {
-      return rawGeometry;
-    }
-
-    if (fileName === MeshName.Statue) {
-      const scale = 0.0625;
-      // mutates geometry's underlying points
-      rawGeometry.scale(scale, scale, scale);
-      // rawGeometry.rotateY(-Math.PI / 2);
-      rawGeometry.center();
-      rawGeometry.computeBoundingBox();
-
-    }
-    return rawGeometry;
-  }, [rawGeometry, fileName]);
-
 
   const meshGroup = useMemo(() => {
     const g = new THREE.Group();
-    // g.translateZ(-5);
     return g;
   }, []);
 
@@ -61,16 +48,29 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
     material,
   } = useMaterial({});
 
-  const meshRaw = useMemo(() => {
-    if (!geometry || !material) {
-      return null;
-    }
-    const m = new THREE.Mesh(geometry, material);
-    (window as any).mesh = m;
-    return m;
-  }, [geometry, material]);
+  scene.background = new THREE.Color(0xffb908);
 
-  useMountSingle(meshRaw, meshGroup);
+  const {
+    material: outerMaterial,
+  } = useOuterMaterial({
+    pixelOffset,
+    pixelSize,
+  });
+
+  // Main statue
+  useObjMesh({
+    fileName,
+    material,
+    mountTo: meshGroup,
+  });
+  
+  // Outer layer
+  useObjMesh({
+    fileName,
+    material: outerMaterial,
+    mountTo: meshGroup,
+  });
+
   useMountSingle(meshGroup, scene);
 
   useFrame(
@@ -115,11 +115,23 @@ export function Scene() {
     
   }, [])
 
-  // const {
-  // } = useControls({
-  // });
+  const {
+    "Mask Offset": pixelOffset,
+    "Pixel Size": pixelSize,
+  } = useControls({
+    "Mask Offset": {
+      min: 0.001,
+      max: 0.2,
+      value: 0.05
+    },
+    "Pixel Size": {
+      min: 0.5,
+      max: 4.,
+      value: 1,
+    }
+  });
 
-  const { mouseState } = useMouseDrag({});
+  const { mouseState, mouseTarget } = useMouseDrag({});
 
   const [controlRotation, setControlRotation] = useState<[number, number]>([0, 0]);
 
@@ -127,17 +139,22 @@ export function Scene() {
     if (!mouseState.isMouseDown) {
       return;
     }
+
+    if (mouseTarget && (mouseTarget as HTMLDivElement).className.includes('leva-')) {
+      return;
+    }
+
     setControlRotation(([oldX, oldY]) => [
       oldX + mouseState.dx / MOUSE_SCALING,
       oldY + mouseState.dy / MOUSE_SCALING,
-    ])
-  }, [mouseState, mouseState.dx, mouseState.dy])
+    ]);
+  }, [mouseState, mouseState.dx, mouseState.dy, mouseTarget]);
 
   return (
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }} camera={{ fov: 75, position: [0, -10, 0]}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation}/>
+      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation} pixelOffset={pixelOffset} pixelSize={pixelSize}/>
     </Canvas>
   )
 

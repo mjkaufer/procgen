@@ -25,10 +25,14 @@ export function useMouseDrag({
     isMouseDown: false,
   });
 
+  const [mouseTarget, setMouseTarget] = useState<EventTarget | null>();
+
   useEffect(() => {
 
     const handleWindowMouseMove = (event: MouseEvent) => {
+      
       const isMouseDown = !!event.buttons;
+      setMouseTarget(event.target);
       setMouseState(priorState => {
         const newState: IUseMouseState = {
           x: event.clientX,
@@ -51,5 +55,5 @@ export function useMouseDrag({
     }
   }, [onMove])
 
-  return {mouseState};
+  return {mouseState, mouseTarget};
 }
