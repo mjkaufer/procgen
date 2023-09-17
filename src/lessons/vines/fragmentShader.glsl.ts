@@ -18,22 +18,17 @@ export default glsl`
 
   void main() {
     float BUCKETS = 5.;
-    float MIN_AMB = 0.75;
-    // vec3 facePos = mix(relN, cross(dFdx(projPos), dFdy(projPos)), 1.);
-    // gl_FragColor = vec4(vec3(dot(
-    //   normalize(cross(dFdx(projPos), dFdy(projPos))),
-    //   relN
-    // )), 1.);
+    float MIN_AMB = 0.;
 
     float baseVal = max(pow(dot(
-      // don't really get it but that's ok
+      // normal of face
       normalize(cross(dFdx(projPos), dFdy(projPos))),
-      relN
+      // delta of face and point on face - would be cool to get center of face, but idk how
+      normalize(cameraPosition - projPos)
     ), 0.5), MIN_AMB);
 
-    // baseVal = min(ceil((baseVal - MIN_AMB) * BUCKETS) / BUCKETS + MIN_AMB, 1.);
+    baseVal = min(ceil((baseVal - MIN_AMB) * BUCKETS) / BUCKETS + MIN_AMB, 1.);
 
     gl_FragColor = vec4(vec3(baseVal), 1.0);
-    // gl_FragColor = vec4(relN, 1.);
   }
   `

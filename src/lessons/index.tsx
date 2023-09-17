@@ -6,6 +6,7 @@ import BrickView from "./brick-1/View";
 import SpookyTorusView from "./spooky-torus/View";
 import VinesView from "./vines/View";
 import DeformView from "./deform/View";
+import PixelView from "./pixel-shader/View";
 
 // Add new lessons here!
 const lessons: IView[] = [
@@ -13,6 +14,7 @@ const lessons: IView[] = [
   SpookyTorusView,
   VinesView,
   DeformView,
+  PixelView,
 ].reverse();
 
 function LessonSelector() {
