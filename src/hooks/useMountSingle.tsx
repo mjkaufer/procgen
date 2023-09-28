@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
+import { useMountMany } from './useMountMany';
+
 export function useMountSingle(object: THREE.Object3D | null, parent: THREE.Object3D) {
 
-  useEffect(() => {
-    object && parent.add(object);
-    return () => {
-      object && parent.remove(object);
-    }
-  }, [object, parent]);
+  const objectArr = useMemo(() => {
+    return object === null ? [] : [object];
+  }, [object]);
+
+  useMountMany(objectArr, parent)
 
 }

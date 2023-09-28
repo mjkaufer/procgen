@@ -12,7 +12,7 @@ interface IUseMouseDragProps {
   onMove?: (s: IUseMouseState) => void;
 }
 
-
+// TODO: Rename
 export function useMouseDrag({
   onMove
 }: IUseMouseDragProps) {
@@ -34,11 +34,13 @@ export function useMouseDrag({
       const isMouseDown = !!event.buttons;
       setMouseTarget(event.target);
       setMouseState(priorState => {
+        const x = event.clientX;
+        const y = event.clientY;
         const newState: IUseMouseState = {
-          x: event.clientX,
-          y: event.clientY,
-          dx: event.clientX - priorState.x,
-          dy: event.clientY - priorState.y,
+          x,
+          y,
+          dx: x - priorState.x,
+          dy: y - priorState.y,
           isMouseDown,
         }
 

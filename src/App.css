@@ -61,3 +61,16 @@ body {
 .canvas-wrapper, .canvas-wrapper > div {
   height: 100%;
 }
+
+.exum {
+  font-family: monospace;
+  /* font-size: 1.25em; */
+}
+
+.exum h2 {
+  margin-bottom: 0;
+}
+
+.exum .chill-link {
+  color: inherit;
+}

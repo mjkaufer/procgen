@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IView } from "../common";
 import { useJoin } from "../hooks/useJoin";
 import BrickView from "./brick-1/View";
@@ -7,6 +7,7 @@ import SpookyTorusView from "./spooky-torus/View";
 import VinesView from "./vines/View";
 import DeformView from "./deform/View";
 import PixelView from "./pixel-shader/View";
+import ExumView from "./exum/View";
 
 // Add new lessons here!
 const lessons: IView[] = [
@@ -15,6 +16,7 @@ const lessons: IView[] = [
   VinesView,
   DeformView,
   PixelView,
+  ExumView,
 ].reverse();
 
 function LessonSelector() {
@@ -31,11 +33,15 @@ function LessonSelector() {
       </>
     )),
     delimiter: <> | </>
-  })
+  });
+
+  const component = useMemo(() => {
+    return currentLesson.component();
+  }, [currentLesson]);
   return (
     <>
       <div className="canvas-wrapper">
-      {currentLesson.component()}
+        {component}
       </div>
       <div className="lesson-navbar">
         <div>
@@ -49,7 +55,7 @@ function LessonSelector() {
               {currentLesson.description}
             </p>
           </div>
-          <hr/>
+          <hr />
           <div>
             {lessonsToRender}
           </div>
