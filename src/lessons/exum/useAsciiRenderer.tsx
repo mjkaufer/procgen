@@ -20,6 +20,7 @@ export function useAsciiRenderer({
       // cellSize: 16,
       color: true,
       invert: false,
+      resolution: 0.1,
     };
 
     const stateProps: Partial<AsciiEffectOptions> & { characters?: string } =

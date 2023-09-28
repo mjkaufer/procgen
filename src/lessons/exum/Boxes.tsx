@@ -6,14 +6,11 @@ import { SplashState } from "./types";
 import { useMountSingle } from '../../hooks/useMountSingle';
 import { useMountMany } from '../../hooks/useMountMany';
 import { useRerender } from '../../hooks/useRerender';
-import { useAnimationFrameStore } from './useAnimationFrameStore';
-import { shallow } from 'zustand/shallow';
-// import { useRaycaster } from '../../hooks/useRaycaster';
+import { useRaycaster } from '../../hooks/useRaycaster';
 
 interface IBoxesProps {
   splashState: SplashState;
   readyForNextState: () => void;
-  scene: THREE.Scene;
 }
 
 const INIT_BOXES = 3;
@@ -31,23 +28,26 @@ const FINAL_BOX_LENGTH = 3;
 
 const NUM_BOX_SEGMENTS = 8;
 
-// const BASE_PHONG_PROPS: Partial<THREE.MeshPhongMaterialParameters> = {
-//   specular: 0xffffff,
-//   shininess: 100,
-//   flatShading: true,
-// }
+const BASE_PHONG_PROPS: Partial<THREE.MeshPhongMaterialParameters> = {
+  specular: 0xffffff,
+  shininess: 100,
+  flatShading: true,
+}
 const BASE_LAMBERT_PROPS: Partial<THREE.MeshLambertMaterialParameters> = {
   // shininess: 100,
   flatShading: true,
+  reflectivity: 100,
 }
 
 export function Boxes({
   splashState,
   readyForNextState,
-  scene,
 }: IBoxesProps) {
-  const [addFns, removeFns] = useAnimationFrameStore(s => [s.addFns, s.removeFns], shallow);
+
+  const { scene } = useThree();
+
   const [numBoxes, setNumBoxes] = useState(INIT_BOXES);
+  const lastStateAt = useMemo(() => +new Date(), [splashState]);
 
   const circleRadius = useMemo(() => {
     return Math.pow(numBoxes, 0.5) * BASE_BOX_LENGTH;
@@ -58,17 +58,22 @@ export function Boxes({
   }, []);
 
   const boxMaterial = useMemo(() => {
-    return new THREE.MeshLambertMaterial({
-      ...BASE_LAMBERT_PROPS,
+    // return new THREE.MeshLambertMaterial({
+    //   ...BASE_LAMBERT_PROPS,
+    //   // color: 0x330000,
+    //   // Use lighter color for grater depth in ASCII
+    //   color: 0xeeeeee,
+    // });
+    return new THREE.MeshPhongMaterial({
+      ...BASE_PHONG_PROPS,
+      // color: 0x330000,
+      // Use lighter color for grater depth in ASCII
+      color: 0xeeeeee,
     });
   }, []);
 
   const finishMaterial = useMemo(() => {
     return new THREE.MeshLambertMaterial({ color: 0x00ff00, ...BASE_LAMBERT_PROPS, });
-  }, []);
-
-  const hoverMaterial = useMemo(() => {
-    return new THREE.MeshLambertMaterial({ color: 0xff0000, ...BASE_LAMBERT_PROPS, });
   }, []);
 
   // TODO: Try to reuse boxes
@@ -114,7 +119,7 @@ export function Boxes({
 
     const spotlight = new THREE.SpotLight(0xffffff, 150);
     spotlight.position.set(0, -BASE_BOX_LENGTH * 30, 0);
-
+    
     plg.add(spotlight);
     return plg;
   }, []);
@@ -123,18 +128,33 @@ export function Boxes({
 
   // const { getIntersection } = useRaycaster()
 
-
-  useEffect(() => {
-
-    const animate = () => {
-
-
-      const time = (+new Date()) / 100;
+  useFrame(
+    (state, delta) => {
+      const time = state.clock.getElapsedTime();
+      // const intersections = getIntersection(allBoxes);
+      // Not same units as time
+      const timeSinceLastState = (+new Date()) - lastStateAt;
 
       allBoxes.forEach((box, boxIndex) => {
         const fixedOffset = boxIndex * Math.PI * 2 / numBoxes;
         box.rotation.x = fixedOffset + time / 10;
         box.rotation.y = fixedOffset + time / 10 + Math.PI / 4;
+
+        // Hover effect for box
+        // TODO: Persist on box? Or track as box index?
+        // if (intersections[0]?.object === box && allBoxes.length > 1) {
+        //   const length = Math.max(...box.scale.toArray());
+        //   if (length < MAX_HOVER_SCALE) {
+        //     const INCREASE_BY = Math.min(HOVER_SCALE_RATE, MAX_HOVER_SCALE / length);
+
+        //     box.scale.multiplyScalar(INCREASE_BY);
+        //   }
+        //   box.material = hoverMaterial;
+        // } else {
+        //   box.material = boxMaterial;
+        //   box.scale.set(BASE_BOX_LENGTH, BASE_BOX_LENGTH, BASE_BOX_LENGTH);
+        // }
+
 
         if (allBoxes.length === 1) {
           // TODO: Make green
@@ -146,58 +166,8 @@ export function Boxes({
 
       parentGroup.rotation.y = time / 10;
 
-      // Stupid hack to get us past frequent weird deadlock at start of load
-      if (splashState === SplashState.Init) {
-        readyForNextState();
-      }
-    };
-
-    addFns([animate]);
-    return () => {
-      removeFns([animate])
     }
-  }, [allBoxes, splashState === SplashState.Init, readyForNextState]);
-
-  // useFrame(
-  //   (state, delta) => {
-  //     const time = state.clock.getElapsedTime();
-  //     const intersections = getIntersection(allBoxes);
-  //     // Not same units as time
-  //     const timeSinceLastState = (+new Date()) - lastStateAt;
-
-  //     // allBoxes.forEach((box, boxIndex) => {
-  //     //   const fixedOffset = boxIndex * Math.PI * 2 / numBoxes;
-  //     //   box.rotation.x = fixedOffset + time / 10;
-  //     //   box.rotation.y = fixedOffset + time / 10 + Math.PI / 4;
-
-  //     //   // Hover effect for box
-  //     //   // TODO: Persist on box? Or track as box index?
-  //     //   if (intersections[0]?.object === box && allBoxes.length > 1) {
-  //     //     const length = Math.max(...box.scale.toArray());
-  //     //     if (length < MAX_HOVER_SCALE) {
-  //     //       const INCREASE_BY = Math.min(HOVER_SCALE_RATE, MAX_HOVER_SCALE / length);
-
-  //     //       box.scale.multiplyScalar(INCREASE_BY);
-  //     //     }
-  //     //     box.material = hoverMaterial;
-  //     //   } else {
-  //     //     box.material = boxMaterial;
-  //     //     box.scale.set(BASE_BOX_LENGTH, BASE_BOX_LENGTH, BASE_BOX_LENGTH);
-  //     //   }
-
-
-  //     //   if (allBoxes.length === 1) {
-  //     //     // TODO: Make green
-  //     //     box.material = finishMaterial;
-  //     //     box.scale.set(FINAL_BOX_LENGTH, FINAL_BOX_LENGTH, FINAL_BOX_LENGTH);
-  //     //   }
-  //     // });
-
-
-  //     // parentGroup.rotation.y = time / 10;
-
-  //   }
-  // );
+  );
 
   const { rerender, rerenderToken } = useRerender();
 
@@ -238,8 +208,7 @@ export function Boxes({
       return () => clearTimeout(intervalId);
     }
 
-    // Add rerenderToken to be more robust to weird lags / react refreshes
-  }, [numBoxes, splashState, readyForNextState, rerenderToken]);
+  }, [numBoxes, splashState, readyForNextState]);
 
   // TODO: Revert to add boxes
   useEffect(() => {

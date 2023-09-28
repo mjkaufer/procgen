@@ -1,12 +1,14 @@
 import React, { ReactPropTypes, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import * as THREE from 'three';
+import { Canvas } from '@react-three/fiber'
 import styled from 'styled-components';
 
 import { SplashState } from './types';
+import { EffectComposer } from '@react-three/postprocessing';
 import { TickerText } from './TickerText';
 import { useStateSynchronizer } from '../../hooks/useStateSynchronizer';
 import { Boxes } from './Boxes';
-
-import { ThreeContainer } from './ThreeContainer';
+import { ASCIIEffect, IASCIIEffectProps } from './lib/ASCII';
 
 const PageContentWrapper = styled.div`
   position: absolute;
@@ -20,8 +22,6 @@ const PageContentWrapper = styled.div`
 const STATE_PROGRESSION_DELAY_MS = 1500;
 
 export function Scene() {
-
-  
 
   const [splashState, setSplashState] = useState<SplashState>(SplashState.Init);
 
@@ -54,7 +54,7 @@ export function Scene() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const asciiEffectRef = useRef<any>(null);
+  const asciiEffect = useRef<any>(null);
 
   // Kind of strange, default threejs orientation is pain in butt for this idea, but don't
   // want to break everything else
@@ -66,7 +66,7 @@ export function Scene() {
   //   return () => {
   //     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 1, 0);
   //   }
-
+    
   // }, [])
 
 
@@ -84,10 +84,10 @@ export function Scene() {
   //   ])
   // }, [mouseState, mouseState.dx, mouseState.dy])
 
-  const { syncFns: [
+  const {syncFns: [
     textSync,
     graphicsSync,
-  ] } = useStateSynchronizer({
+  ]} = useStateSynchronizer({
     numSynchronizers: 2,
     currentState: splashState,
     nextState: progressSplashState,
@@ -99,7 +99,7 @@ export function Scene() {
       textSync();
     }
   }, [textSync, splashState]);
-
+  
 
   const pageContent = useMemo(() => {
     if (splashState === SplashState.Init) {
@@ -107,11 +107,11 @@ export function Scene() {
     }
 
     if (splashState === SplashState.IncreasingCubes) {
-      return <TickerText text="When there's a new foundation model black box daily" onComplete={textSync} />
+      return <TickerText text="When there's a new foundation model black box daily" onComplete={textSync}/>
     }
 
     if (splashState === SplashState.DecreasingCubes) {
-      return <TickerText text="Experts use Exum to find the best models for the best value" onComplete={textSync} />
+      return <TickerText text="Experts use Exum to find the best models for the best value" onComplete={textSync}/>
     }
 
     if (splashState === SplashState.Finish) {
@@ -129,16 +129,54 @@ export function Scene() {
   }, [splashState, textSync]);
 
 
+  const baseAscii = useMemo(() => {
+    return new ASCIIEffect({});
+  }, []);
+
+  useEffect(() => {
+    console.log("RUNNING USE EFFECT!!! WITH", splashState)
+    const asciiProps: Partial<IASCIIEffectProps> = {
+      characters: 'MXEU ',
+      // invert: true,
+    };
+
+    if (splashState === SplashState.Init || splashState === SplashState.IncreasingCubes) {
+      console.log("USE EFFECT BLOCK FOR IncreasingCubes")
+      Object.assign(asciiProps, {
+        characters: '?¿#.'
+      })
+    } else if (splashState === SplashState.DecreasingCubes) {
+      console.log("USE EFFECT BLOCK FOR DecreasingCubes")
+      Object.assign(asciiProps, {
+        characters: 'EXUM ',
+      })
+    } else if (splashState === SplashState.Finish) {
+      console.log("USE EFFECT BLOCK FOR Finish")
+      Object.assign(asciiProps, {
+        characters: '$',
+        color: '#00ff00',
+        invert: false,
+      })
+    }
+
+    baseAscii.updateProps(asciiProps);
+  }, [baseAscii, splashState]);
+  // TODO: Override somehow
+
+  (window as any).asciiEffect = asciiEffect;
+
   return (
     <>
-      <PageContentWrapper>
-        {pageContent}
-      </PageContentWrapper>
-      <div id="exum-parent">
-      {/* <canvas width="1000" height="1000" id="tmp-canvas"/> */}
-        <ThreeContainer splashState={splashState} readyForNextState={graphicsSync}  />
-      
-      </div>
+    <PageContentWrapper>
+      {pageContent}
+    </PageContentWrapper>
+    <Canvas style={{ width: '100%', height: '100%', background: '#ddd' }} camera={{ fov: 75, position: [0, -10, 0]}}>
+      <EffectComposer>
+        <primitive object={baseAscii} key={splashState}/>
+        
+      </EffectComposer>
+      <Boxes splashState={splashState} readyForNextState={graphicsSync}/>
+    </Canvas>
     </>
   )
 
