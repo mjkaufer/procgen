@@ -43,7 +43,7 @@ function LessonSelector() {
       <div className="canvas-wrapper">
         {component}
       </div>
-      <div className="lesson-navbar">
+      <div className="lesson-navbar" style={currentLesson.sidebarProperties}>
         <div>
           <div>
             <p>
