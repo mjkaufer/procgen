@@ -87,7 +87,7 @@ export class ASCIIEffect extends Effect {
         invert = false,
         clearBackground = false,
     }: IASCIIEffectProps = {}) {
-        console.log("CLEAR BG IS", clearBackground)
+        // console.log("CLEAR BG IS", clearBackground)
         const uniforms = new Map<string, Uniform>([
             ['uCharacters', new Uniform(new Texture())],
             ['uCellSize', new Uniform(cellSize)],
@@ -116,7 +116,7 @@ export class ASCIIEffect extends Effect {
     }
 
     public updateProps(newProps: Partial<IASCIIEffectProps>) {
-        console.log("UPDATING PROPS!...", newProps);
+        // console.log("UPDATING PROPS!...", newProps);
 
         // Update the "this." vars in first pass for consistency
         (Object.keys(newProps) as (keyof IASCIIEffectProps)[]).forEach((newPropKey) => {
@@ -153,9 +153,6 @@ export class ASCIIEffect extends Effect {
             } 
         });
 
-        
-
-        console.log("NOW THIS IS", this)
     }
 
     public updateCharacters(newCharacters: string = this.characters) {

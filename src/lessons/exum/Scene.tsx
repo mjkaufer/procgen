@@ -134,28 +134,23 @@ export function Scene() {
   }, []);
 
   useEffect(() => {
-    console.log("RUNNING USE EFFECT!!! WITH", splashState)
     const asciiProps: Partial<IASCIIEffectProps> = {
       characters: 'MXEU',
       clearBackground: true,
       color: "#000",
       fontSize: 70,
       cellSize: 30,
-      // invert: true,
     };
 
     if (splashState === SplashState.Init || splashState === SplashState.IncreasingCubes) {
-      console.log("USE EFFECT BLOCK FOR IncreasingCubes")
       Object.assign(asciiProps, {
         characters: '?¿#'
       })
     } else if (splashState === SplashState.DecreasingCubes) {
-      console.log("USE EFFECT BLOCK FOR DecreasingCubes")
       Object.assign(asciiProps, {
         characters: 'EXUM',
       })
     } else if (splashState === SplashState.Finish) {
-      console.log("USE EFFECT BLOCK FOR Finish")
       Object.assign(asciiProps, {
         characters: '¢$€%',
         color: '#32612D',

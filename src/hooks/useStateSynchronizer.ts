@@ -13,18 +13,18 @@ export function useStateSynchronizer({
   currentState,
 }: IUseStateSynchronizerProps) {
 
-  useEffect(() => {
-    console.log("--- EVERYTHING STARTS NOW!!!!!")
-  }, []);
+  // useEffect(() => {
+  //   console.log("--- EVERYTHING STARTS NOW!!!!!")
+  // }, []);
 
   const [syncStatuses, setSyncStatuses] = useState(_.range(numSynchronizers).map(v => false));
-  console.log("Statuses are", {
-    syncStatuses, currentState
-  })
+  // console.log("Statuses are", {
+  //   syncStatuses, currentState
+  // })
 
     // When we change sync ct or state, clear all values
     useEffect(() => {
-      console.log("Clearing statuses...", numSynchronizers, currentState)
+      // console.log("Clearing statuses...", numSynchronizers, currentState)
       setSyncStatuses(_.range(numSynchronizers).map(v => false));
     }, [numSynchronizers, currentState]);
 
