@@ -45,6 +45,7 @@ export function Boxes({
 }: IBoxesProps) {
 
   const { scene } = useThree();
+  
 
   const [numBoxes, setNumBoxes] = useState(INIT_BOXES);
   const lastStateAt = useMemo(() => +new Date(), [splashState]);
@@ -131,6 +132,7 @@ export function Boxes({
   useFrame(
     (state, delta) => {
       const time = state.clock.getElapsedTime();
+      
       // const intersections = getIntersection(allBoxes);
       // Not same units as time
       const timeSinceLastState = (+new Date()) - lastStateAt;
@@ -164,7 +166,11 @@ export function Boxes({
       });
 
 
+      // console.log("Mouse state is", state.mouse)
+      parentGroup.rotation.x = Math.PI / 6 * -state.mouse.y;
       parentGroup.rotation.y = time / 10;
+      parentGroup.rotation.z = Math.PI / 3 * state.mouse.x;
+      // parentGroup.rotation.z = Math.PI * 2 / 3 * (state.mouse.y - 0.5);
 
     }
   );
