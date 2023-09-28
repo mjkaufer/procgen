@@ -2,6 +2,7 @@
   "name": "procgen",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://www.kaufer.org/procgen",
   "dependencies": {
     "@react-three/fiber": "^8.13.6",
     "@react-three/postprocessing": "^2.15.1",
