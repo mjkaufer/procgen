@@ -64,7 +64,7 @@ body {
 
 .exum {
   font-family: monospace;
-  /* font-size: 1.25em; */
+  font-size: 1.25em;
 }
 
 .exum h2 {
@@ -73,4 +73,22 @@ body {
 
 .exum .chill-link {
   color: inherit;
+}
+
+.exum .ticker {
+  font-weight: bold;
+  text-shadow: 2px 2px white;
+}
+
+.exum .ticker, .exum .sales-cta {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.exum .sales-cta {
+  transition: 0.25s all;
+  padding: 1em;
+}
+
+.exum .sales-cta, .exum .sales-cta > * {
+  display: inline-block;
 }

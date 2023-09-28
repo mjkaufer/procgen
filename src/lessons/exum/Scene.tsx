@@ -107,21 +107,21 @@ export function Scene() {
     }
 
     if (splashState === SplashState.IncreasingCubes) {
-      return <TickerText text="When there's a new foundation model black box daily" onComplete={textSync}/>
+      return <TickerText text="In an age where there's a new black box LLM every day" onComplete={textSync}/>
     }
 
     if (splashState === SplashState.DecreasingCubes) {
-      return <TickerText text="Experts use Exum to find the best models for the best value" onComplete={textSync}/>
+      return <TickerText text="Experts use Exum to find the best models at the best price points" onComplete={textSync}/>
     }
 
     if (splashState === SplashState.Finish) {
       return (
-        <div>
+        <div className="sales-cta">
           {/* TODO: Fade-in CSS */}
           <h2>Exum.AI</h2>
-          {/* TODO: Hyperlink */}
+          <br/>
           <p>
-            <a href="mailto:sales@exum.ai" className="chill-link">Talk to Sales</a>
+            <a href="mailto:sales@exum.ai" className="chill-link">Contact</a>
           </p>
         </div>
       )
@@ -136,25 +136,29 @@ export function Scene() {
   useEffect(() => {
     console.log("RUNNING USE EFFECT!!! WITH", splashState)
     const asciiProps: Partial<IASCIIEffectProps> = {
-      characters: 'MXEU ',
+      characters: 'MXEU',
+      clearBackground: true,
+      color: "#000",
+      fontSize: 70,
+      cellSize: 30,
       // invert: true,
     };
 
     if (splashState === SplashState.Init || splashState === SplashState.IncreasingCubes) {
       console.log("USE EFFECT BLOCK FOR IncreasingCubes")
       Object.assign(asciiProps, {
-        characters: '?¿#.'
+        characters: '?¿#'
       })
     } else if (splashState === SplashState.DecreasingCubes) {
       console.log("USE EFFECT BLOCK FOR DecreasingCubes")
       Object.assign(asciiProps, {
-        characters: 'EXUM ',
+        characters: 'EXUM',
       })
     } else if (splashState === SplashState.Finish) {
       console.log("USE EFFECT BLOCK FOR Finish")
       Object.assign(asciiProps, {
-        characters: '$',
-        color: '#00ff00',
+        characters: '¢$€%',
+        color: '#32612D',
         invert: false,
       })
     }

@@ -9,6 +9,7 @@ uniform sampler2D uCharacters;
 uniform float uCharactersCount;
 uniform float uCellSize;
 uniform bool uInvert;
+uniform bool uClearBackground;
 uniform vec3 uColor;
 
 const vec2 SIZE = vec2(16.);
@@ -35,7 +36,8 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     vec4 pixelized = texture2D(inputBuffer, pixelizedUV);
     float greyscaled = clamp(
         // Add some noise :)
-        greyscale(pixelized.rgb).r + (seededRand(pixelizedUV * 100.) * 0.25),
+        // TODO: Make it better / noisier / more noticeable
+        greyscale(pixelized.rgb).r + (seededRand(pixelizedUV * 100.) * 0.45),
         0.,
         1.);
 
@@ -54,7 +56,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     // asciiCharacter.rgb = inputColor.rgb;
 
     asciiCharacter.rgb = uColor * asciiCharacter.r;
-    asciiCharacter.a = pixelized.a;
+    asciiCharacter.a = uClearBackground ? min(pixelized.a, asciiCharacter.a) : pixelized.a;
     outputColor = asciiCharacter;
 }
 `;
@@ -65,6 +67,7 @@ export interface IASCIIEffectProps {
     cellSize?: number;
     color?: string;
     invert?: boolean;
+    clearBackground?: boolean;
 }
 
 export class ASCIIEffect extends Effect {
@@ -74,20 +77,24 @@ export class ASCIIEffect extends Effect {
     private cellSize: number;
     private color: string;
     private invert: boolean;
+    private clearBackground: boolean;
 
     constructor({
         characters = ` .:,'-^=*+?!|0#X%WM@`,
         fontSize = 54,
         cellSize = 16,
         color = '#ffffff',
-        invert = false
+        invert = false,
+        clearBackground = false,
     }: IASCIIEffectProps = {}) {
+        console.log("CLEAR BG IS", clearBackground)
         const uniforms = new Map<string, Uniform>([
             ['uCharacters', new Uniform(new Texture())],
             ['uCellSize', new Uniform(cellSize)],
             ['uCharactersCount', new Uniform(characters.length)],
             ['uColor', new Uniform(new Color(color))],
-            ['uInvert', new Uniform(invert)]
+            ['uInvert', new Uniform(invert)],
+            ['uClearBackground', new Uniform(clearBackground)],
         ]);
 
 
@@ -98,6 +105,7 @@ export class ASCIIEffect extends Effect {
         this.cellSize = cellSize;
         this.color = color;
         this.invert = invert;
+        this.clearBackground = clearBackground;
 
         this.updateCharacters(characters);
         const charactersTextureUniform = this.uniforms.get('uCharacters');
@@ -108,17 +116,23 @@ export class ASCIIEffect extends Effect {
     }
 
     public updateProps(newProps: Partial<IASCIIEffectProps>) {
-        console.log("UPDATING PROPS!...");
+        console.log("UPDATING PROPS!...", newProps);
 
+        // Update the "this." vars in first pass for consistency
         (Object.keys(newProps) as (keyof IASCIIEffectProps)[]).forEach((newPropKey) => {
             if (newProps[newPropKey] !== undefined) {
                 // Unsure why TS yelling here :(
                 (this as any)[newPropKey] = newProps[newPropKey];
             }
+        });
 
+        (Object.keys(newProps) as (keyof IASCIIEffectProps)[]).forEach((newPropKey) => {
             // Takes care of fontSize too
-            if (newPropKey === 'characters') {
-                this.updateCharacters();
+            if (newPropKey === 'clearBackground') {
+                const uniform = this.uniforms.get('uClearBackground');
+                if (uniform) {
+                    uniform.value = this.clearBackground;
+                }
             } else if (newPropKey === 'cellSize') {
                 const uniform = this.uniforms.get('uCellSize');
                 if (uniform) {
@@ -134,9 +148,12 @@ export class ASCIIEffect extends Effect {
                 if (uniform) {
                     uniform.value = this.invert;
                 }
-            }
+            } else if (newPropKey === 'characters' || newPropKey === 'fontSize' || newPropKey === 'clearBackground') {
+                this.updateCharacters();
+            } 
+        });
 
-        })
+        
 
         console.log("NOW THIS IS", this)
     }
@@ -182,7 +199,7 @@ export class ASCIIEffect extends Effect {
 
         context.clearRect(0, 0, SIZE, SIZE);
         // TODO: Parameterize?
-        context.font = `${fontSize}px monospace`;
+        context.font = `bold ${fontSize}px monospace`;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillStyle = '#fff';

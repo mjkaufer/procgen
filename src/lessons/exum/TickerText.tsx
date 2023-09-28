@@ -102,7 +102,7 @@ export function TickerText({
 
   return (
     <>
-      <BlinkingSpan blinking={isBlinking}>{currentText}</BlinkingSpan>
+      <BlinkingSpan className="ticker" blinking={isBlinking}>{currentText}</BlinkingSpan>
     </>
   )
 }
