@@ -12,7 +12,7 @@ export function View() {
 const viewInfo: IView = {
   component: View,
   title: 'Exum.AI Landing Concept',
-  description: 'Did some tweaking on some ASCII useEffects, and some more animation driven state management',
+  description: 'Did some tweaking on some ASCII useEffects, and some more animation driven state management. TODO: Maybe add some slight scene rotation based on mouse movement!',
   createdAt: new Date('Sept 28 2023'),
   sidebarProperties: {
     color: 'black',
