@@ -8,6 +8,7 @@ import VinesView from "./vines/View";
 import DeformView from "./deform/View";
 import PixelView from "./pixel-shader/View";
 import ExumView from "./exum/View";
+import ShaderView from './shader/View';
 
 // Add new lessons here!
 const lessons: IView[] = [
@@ -17,6 +18,7 @@ const lessons: IView[] = [
   DeformView,
   PixelView,
   ExumView,
+  ShaderView,
 ].reverse();
 
 function LessonSelector() {
