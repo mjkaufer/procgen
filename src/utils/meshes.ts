@@ -1,3 +1,3 @@
 export enum MeshName {
-  Statue = 'meshes/statue.obj',
+  Statue = './meshes/statue.obj',
 }

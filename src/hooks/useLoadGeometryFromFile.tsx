@@ -37,7 +37,7 @@ export function useLoadGeometryFromFile({
     setIsLoading(true);
     loader.load(
       // resource URL
-      fileName,
+      window.location.href + '/' + fileName,
       // called when resource is loaded
       (object: THREE.BufferGeometry | THREE.Mesh | THREE.Object3D) => {
 
