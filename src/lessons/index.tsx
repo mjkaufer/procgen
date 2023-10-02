@@ -1,26 +1,8 @@
 import * as THREE from 'three';
-import { useEffect, useMemo, useState } from "react";
-import { IView } from "../common";
+import { useMemo, useState } from "react";
 import { useJoin } from "../hooks/useJoin";
-import BrickView from "./brick-1/View";
-import SpookyTorusView from "./spooky-torus/View";
-import VinesView from "./vines/View";
-import DeformView from "./deform/View";
-import PixelView from "./pixel-shader/View";
-import ExumView from "./exum/View";
-import ShaderView from './shader/View';
 
-// Add new lessons here!
-const lessons: IView[] = [
-  BrickView,
-  SpookyTorusView,
-  VinesView,
-  DeformView,
-  PixelView,
-  ExumView,
-  ShaderView,
-].reverse();
-
+import { lessons } from './lessonList';
 function LessonSelector() {
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const currentLesson = lessons[currentLessonIndex];

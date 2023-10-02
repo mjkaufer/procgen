@@ -66,7 +66,7 @@ export function Scene() {
     "Effect Choice": effectChoice,
   } = useControls({
     "Effect Choice": {
-      value: SceneEffectChoice.Magnify,
+      value: SceneEffectChoice.MouseWeightedSwirl,
       options: effectChoiceOptions,
     },
   });
