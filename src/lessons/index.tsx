@@ -4,15 +4,24 @@ import { useJoin } from "../hooks/useJoin";
 
 import { lessons } from './lessonList';
 function LessonSelector() {
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  
+
+  const initialIndex = useMemo(() => {
+    const lessonTitles = lessons.map(l => l.title);
+    const windowHash = decodeURIComponent(window.location.hash.slice(1));
+    const index = lessonTitles.indexOf(windowHash);
+    return Math.max(index, 0);
+  }, []);
+
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(initialIndex);
   const currentLesson = lessons[currentLessonIndex];
 
   const lessonsToRender = useJoin({
     components: lessons.map((lesson, lessonIndex) => (
       <>
-        <span style={{ cursor: 'pointer', textDecoration: lessonIndex === currentLessonIndex ? 'underline' : '' }} onClick={() => setCurrentLessonIndex(lessonIndex)}>
+        <a href={`#${lesson.title}`} style={{ cursor: 'pointer', textDecoration: lessonIndex === currentLessonIndex ? 'underline' : '' }} onClick={() => setCurrentLessonIndex(lessonIndex)}>
           {lesson.title}
-        </span>
+        </a>
         &nbsp;
       </>
     )),

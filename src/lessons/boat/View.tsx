@@ -11,9 +11,9 @@ export function View() {
 
 const viewInfo: IView = {
   component: View,
-  title: 'Template',
-  description: 'Write something here! When you finish, add to lessons/index.tsx',
-  createdAt: new Date(''),
+  title: 'Boat / Waves',
+  description: 'Experimenting w/ user input impacting waves! TODO: Controls',
+  createdAt: new Date('Oct 1 2023'),
 };
 
 export default viewInfo;

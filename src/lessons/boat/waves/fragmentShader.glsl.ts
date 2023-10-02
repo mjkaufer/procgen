@@ -44,6 +44,9 @@ export default glsl`
     bool isPixel = (mod(gl_FragCoord.x, PIXEL_SIZE) < HALF_PIXEL_SIZE) == (mod(gl_FragCoord.y, PIXEL_SIZE) < HALF_PIXEL_SIZE);
 
 
+    // TODO: Refactor off of this, and use boat position / velocity
+    // Might need to use a buffer or something tho
+    // Other option to just do it in CPU so we can use prior values / iterate on stuff?
     // With some noise for the color 8)
     float waveZDelta = clamp(
       waveZDeltaNormalized
