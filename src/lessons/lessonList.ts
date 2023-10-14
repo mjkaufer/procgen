@@ -9,6 +9,7 @@ import PixelView from "./pixel-shader/View";
 import ExumView from "./exum/View";
 import TwoDPostProcessingView from './2d-postprocessing/View';
 import BoatView from './boat/View';
+import CanvasShaderView from './canvas-shader/View';
 
 export const lessons: IView[] = [
   BrickView,
@@ -19,4 +20,5 @@ export const lessons: IView[] = [
   ExumView,
   TwoDPostProcessingView,
   BoatView,
+  CanvasShaderView,
 ].reverse();

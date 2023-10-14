@@ -18,7 +18,6 @@ interface IMainMeshProps {
   controlRotation: [number, number];
   pixelOffset: number;
   pixelSize: number;
-  hideBG: boolean;
 }
 
 function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
@@ -27,7 +26,6 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
     controlRotation,
     pixelSize,
     pixelOffset,
-    hideBG,
   } = props;
   // This reference gives us direct access to the THREE.Mesh object
   const ref = useRef<THREE.Mesh>(null);
@@ -48,18 +46,16 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
 
   const {
     material,
-  } = useMaterial({
-    hideBG
-  });
+  } = useMaterial({});
 
   scene.background = new THREE.Color(0xffb908);
 
-  const {
-    material: outerMaterial,
-  } = useOuterMaterial({
-    pixelOffset,
-    pixelSize,
-  });
+  // const {
+  //   material: outerMaterial,
+  // } = useOuterMaterial({
+  //   pixelOffset,
+  //   pixelSize,
+  // });
 
   // Main statue
   useObjMesh({
@@ -68,12 +64,12 @@ function MainMesh(props: Partial<MeshProps> & IMainMeshProps) {
     mountTo: meshGroup,
   });
   
-  // Outer layer
-  useObjMesh({
-    fileName,
-    material: outerMaterial,
-    mountTo: meshGroup,
-  });
+  // // Outer layer
+  // useObjMesh({
+  //   fileName,
+  //   material: outerMaterial,
+  //   mountTo: meshGroup,
+  // });
 
   useMountSingle(meshGroup, scene);
 
@@ -122,14 +118,12 @@ export function Scene() {
   const {
     "Mask Offset": pixelOffset,
     "Pixel Size": pixelSize,
-    "Hide BG": hideBG,
   } = useControls({
     "Mask Offset": {
       min: 0.001,
       max: 0.2,
       value: 0.05
     },
-    "Hide BG": false,
     "Pixel Size": {
       min: 0.5,
       max: 4.,
@@ -160,7 +154,7 @@ export function Scene() {
     <Canvas style={{ width: '100%', height: '100%', background: '#000' }} camera={{ fov: 75, position: [0, -10, 0]}}>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation} pixelOffset={pixelOffset} pixelSize={pixelSize} hideBG={hideBG}/>
+      <MainMesh position={[0, 0, 0]} controlRotation={controlRotation} pixelOffset={pixelOffset} pixelSize={pixelSize}/>
     </Canvas>
   )
 
