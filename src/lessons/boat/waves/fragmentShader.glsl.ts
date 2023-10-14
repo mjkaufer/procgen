@@ -37,11 +37,28 @@ export default glsl`
     const float HIGH_THRESH = 0.9;
     const float LOW_THRESH = 0.6;
     // TODO: Normalize
+    //    Other option is to compute whether it's pixel or not in fragment shader? But probs not high res enough
+    //    So probably need to apply similar stuff
     // TODO: Rotate w/ viewport
     const float PIXEL_SIZE = 20.;
     const float HALF_PIXEL_SIZE = PIXEL_SIZE / 2.;
 
-    bool isPixel = (mod(gl_FragCoord.x, PIXEL_SIZE) < HALF_PIXEL_SIZE) == (mod(gl_FragCoord.y, PIXEL_SIZE) < HALF_PIXEL_SIZE);
+    
+    /* Chunk for somewhat offset pixel pos
+      float cameraDist = distance(cameraPosition, projPos);
+
+      // TODO: Clapm
+      float pixelSize = PIXEL_SIZE / cameraDist * 30.;
+      float halfPixelSize = pixelSize / 2.;
+
+      bool isPixel =
+        (mod(gl_FragCoord.x, pixelSize) < halfPixelSize) == (mod(gl_FragCoord.y, pixelSize) < halfPixelSize);
+
+    */
+
+    // Chunk for absolute pixel size
+   bool isPixel =
+     (mod(gl_FragCoord.x, PIXEL_SIZE) < HALF_PIXEL_SIZE) == (mod(gl_FragCoord.y, PIXEL_SIZE) < HALF_PIXEL_SIZE);
 
 
     // TODO: Refactor off of this, and use boat position / velocity

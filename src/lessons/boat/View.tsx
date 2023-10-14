@@ -11,7 +11,7 @@ export function View() {
 
 const viewInfo: IView = {
   component: View,
-  title: 'Boat / Waves',
+  title: '[WIP] Boat / Waves',
   description: 'Experimenting w/ user input impacting waves! TODO: Controls',
   createdAt: new Date('Oct 1 2023'),
 };

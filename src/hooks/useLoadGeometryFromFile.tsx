@@ -35,9 +35,11 @@ export function useLoadGeometryFromFile({
     }
 
     setIsLoading(true);
+    const urlWithoutHash = window.location.href.split('#')[0];
+
     loader.load(
       // resource URL
-      window.location.href + '/' + fileName,
+      urlWithoutHash + '/' + fileName,
       // called when resource is loaded
       (object: THREE.BufferGeometry | THREE.Mesh | THREE.Object3D) => {
 
